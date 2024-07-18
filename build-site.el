@@ -33,6 +33,6 @@
       org-html-head-include-scripts nil       ;; Use our own scripts
       org-html-head-include-default-style nil ;; Use our own styles
       org-html-head "<link rel=\"stylesheet\" href=\"https://cdn.simplecss.org/simple.min.css\" />")
-
+(setq org-html-htmlize-output-type 'css)
 (org-publish-all t)
 (message "Build Complete!")

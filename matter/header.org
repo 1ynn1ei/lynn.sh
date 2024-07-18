@@ -1,4 +1,4 @@
-#+DESCRIPTION:Top matter
+#+DESCRIPTION:(require 'gay-mode)
 #+begin_export html
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Yeseva+One&display=swap');
