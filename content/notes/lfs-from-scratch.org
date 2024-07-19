@@ -1,0 +1,42 @@
+* WORKING Chapters 1 to 4
+** Partitioning
+For partioning I referred to arch linux's excellent wiki, as well as the LFS hints page detailing the optimal partitioning of a desk.
+Preferring to use GPT due to large disk size (m.2 drive of 1TiB) and future-proofing.
+Using the Extended Boot Loader Partition type for my =/boot= partition, despite the LFS hint page saying they use ext2.
+Splitting out root directory =/= (20GiB) and =/home= directory to keep the userspace separate from any LFS rebuilding.
+** Formatting
+*** EFI System
+=mkfs.fat -F 32 /dev/nvme1n1p1= as GPT requires fat32
+*** /boot
+=mkfs -v -t ext2 /dev/nvme1n1p2= ext2, as we do not need the journaling feature of ext3 or ext4 for such a small partition.
+*** swap
+=mkswap /dev/nvme1n1p3= super simple, just make swap.
+*** root
+=mkfs -v -t ext4 /dev/nvme1n1p4= ext4 as it is a major partition in the linux filesystem.
+*** /home
+=mkfs -v -t ext4 /dev/nvme1n1p5= same as root, this partition only exists to separate the root out from userspace.
+** Mounting
+Nothing major here, just need to remember to mount both =/= and =/home=, as well as swap using =/sbin/swapon -v /dev/nvme1n1p3=
+** Cross-compile
+*** binutils
+real =0m19.261s=
+*** gcc
+pass1: real =1m48.489s=
+
+pass2: real =3m12.645s=
+*** glibc
+real =0m37.319s=
+*** ncurses
+built this wrong the first time, leading to a linker error when making bash.
+*** tar
+tar being delivered in a tar ball is a special type of comedy.
+** Chroot
+A lot of the setup in chroot chapter needs to be thoroughly re-re-read, mostly the associated standards.
+*** glibc
+real =0m38.184s= tests =13m18.205s=
+*** gcc
+real =3m28.512s= tests =14m58.613s=
+*** gettext
+it was necessary to clear out the previous source folder for gettext and do a clean =tar -xvf gettext-...= for it to install properly.
+* TODO Chapters 5 to 6
+* TODO Chapters 7 to 10

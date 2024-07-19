@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English" xml:lang="English">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>&lrm;</title>
+<meta name="generator" content="Org Mode" />
+<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+</head>
+<body>
+<div id="content" class="content">
+<div id="outline-container-org9cee09e" class="outline-2">
+<h2 id="org9cee09e">WORKING Chapters 1 to 4</h2>
+<div class="outline-text-2" id="text-org9cee09e">
+</div>
+<div id="outline-container-org42630cf" class="outline-3">
+<h3 id="org42630cf">Partitioning</h3>
+<div class="outline-text-3" id="text-org42630cf">
+<p>
+For partioning I referred to arch linux's excellent wiki, as well as the LFS hints page detailing the optimal partitioning of a desk.
+Preferring to use GPT due to large disk size (m.2 drive of 1TiB) and future-proofing.
+Using the Extended Boot Loader Partition type for my <code>/boot</code> partition, despite the LFS hint page saying they use ext2.
+Splitting out root directory <code>/</code> (20GiB) and <code>/home</code> directory to keep the userspace separate from any LFS rebuilding.
+</p>
+</div>
+</div>
+<div id="outline-container-org034c85b" class="outline-3">
+<h3 id="org034c85b">Formatting</h3>
+<div class="outline-text-3" id="text-org034c85b">
+</div>
+<div id="outline-container-org16392e0" class="outline-4">
+<h4 id="org16392e0">EFI System</h4>
+<div class="outline-text-4" id="text-org16392e0">
+<p>
+<code>mkfs.fat -F 32 /dev/nvme1n1p1</code> as GPT requires fat32
+</p>
+</div>
+</div>
+<div id="outline-container-orge1812fe" class="outline-4">
+<h4 id="orge1812fe">/boot</h4>
+<div class="outline-text-4" id="text-orge1812fe">
+<p>
+<code>mkfs -v -t ext2 /dev/nvme1n1p2</code> ext2, as we do not need the journaling feature of ext3 or ext4 for such a small partition.
+</p>
+</div>
+</div>
+<div id="outline-container-orgbc26bdf" class="outline-4">
+<h4 id="orgbc26bdf">swap</h4>
+<div class="outline-text-4" id="text-orgbc26bdf">
+<p>
+<code>mkswap /dev/nvme1n1p3</code> super simple, just make swap.
+</p>
+</div>
+</div>
+<div id="outline-container-org64b9c3e" class="outline-4">
+<h4 id="org64b9c3e">root</h4>
+<div class="outline-text-4" id="text-org64b9c3e">
+<p>
+<code>mkfs -v -t ext4 /dev/nvme1n1p4</code> ext4 as it is a major partition in the linux filesystem.
+</p>
+</div>
+</div>
+<div id="outline-container-org48799c8" class="outline-4">
+<h4 id="org48799c8">/home</h4>
+<div class="outline-text-4" id="text-org48799c8">
+<p>
+<code>mkfs -v -t ext4 /dev/nvme1n1p5</code> same as root, this partition only exists to separate the root out from userspace.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org8a04aa4" class="outline-3">
+<h3 id="org8a04aa4">Mounting</h3>
+<div class="outline-text-3" id="text-org8a04aa4">
+<p>
+Nothing major here, just need to remember to mount both <code>/</code> and <code>/home</code>, as well as swap using <code>/sbin/swapon -v /dev/nvme1n1p3</code>
+</p>
+</div>
+</div>
+<div id="outline-container-org2b75de9" class="outline-3">
+<h3 id="org2b75de9">Cross-compile</h3>
+<div class="outline-text-3" id="text-org2b75de9">
+</div>
+<div id="outline-container-orgbf6fbab" class="outline-4">
+<h4 id="orgbf6fbab">binutils</h4>
+<div class="outline-text-4" id="text-orgbf6fbab">
+<p>
+real <code>0m19.261s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-org13bba9a" class="outline-4">
+<h4 id="org13bba9a">gcc</h4>
+<div class="outline-text-4" id="text-org13bba9a">
+<p>
+pass1: real <code>1m48.489s</code>
+</p>
+
+<p>
+pass2: real <code>3m12.645s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-orgd7c9ea8" class="outline-4">
+<h4 id="orgd7c9ea8">glibc</h4>
+<div class="outline-text-4" id="text-orgd7c9ea8">
+<p>
+real <code>0m37.319s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-orge4ca40a" class="outline-4">
+<h4 id="orge4ca40a">ncurses</h4>
+<div class="outline-text-4" id="text-orge4ca40a">
+<p>
+built this wrong the first time, leading to a linker error when making bash.
+</p>
+</div>
+</div>
+<div id="outline-container-org102f096" class="outline-4">
+<h4 id="org102f096">tar</h4>
+<div class="outline-text-4" id="text-org102f096">
+<p>
+tar being delivered in a tar ball is a special type of comedy.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org61c86eb" class="outline-3">
+<h3 id="org61c86eb">Chroot</h3>
+<div class="outline-text-3" id="text-org61c86eb">
+<p>
+A lot of the setup in chroot chapter needs to be thoroughly re-re-read, mostly the associated standards.
+</p>
+</div>
+<div id="outline-container-org740e317" class="outline-4">
+<h4 id="org740e317">glibc</h4>
+<div class="outline-text-4" id="text-org740e317">
+<p>
+real <code>0m38.184s</code> tests <code>13m18.205s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-org9a7dc00" class="outline-4">
+<h4 id="org9a7dc00">gcc</h4>
+<div class="outline-text-4" id="text-org9a7dc00">
+<p>
+real <code>3m28.512s</code> tests <code>14m58.613s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-orgcfc5ffa" class="outline-4">
+<h4 id="orgcfc5ffa">gettext</h4>
+<div class="outline-text-4" id="text-orgcfc5ffa">
+<p>
+it was necessary to clear out the previous source folder for gettext and do a clean <code>tar -xvf gettext-...</code> for it to install properly.
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-org246bff7" class="outline-2">
+<h2 id="org246bff7"><span class="todo TODO">TODO</span> Chapters 5 to 6</h2>
+</div>
+<div id="outline-container-org2b14308" class="outline-2">
+<h2 id="org2b14308"><span class="todo TODO">TODO</span> Chapters 7 to 10</h2>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="creator"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 29.4 (<a href="https://orgmode.org">Org</a> mode 9.6.15)</p>
+</div>
+</body>
+</html>
