@@ -8,3 +8,5 @@
 #+begin_export html
 <a rel="me" href="https://tech.lgbt/@lynn_sh">Mastodon</a>
 #+end_export
+
+[[./articles/lets-make-a-package-manager-part-1.html][Let's make a package manager: Part 1]]

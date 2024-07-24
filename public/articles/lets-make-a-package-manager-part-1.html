@@ -17,9 +17,9 @@
 <p class="yeseva-one-regular">LYNN</p>
 </div>
 <hr>
-<div id="outline-container-org3d8239b" class="outline-2">
-<h2 id="org3d8239b">Let's make a package manager (1)</h2>
-<div class="outline-text-2" id="text-org3d8239b">
+<div id="outline-container-orgf664b19" class="outline-2">
+<h2 id="orgf664b19">Let's make a package manager (1)</h2>
+<div class="outline-text-2" id="text-orgf664b19">
 <p>
 <code>pacman</code>, <code>aptitude</code>, <code>portage</code>, <code>xbps</code>, and other linux package managers all have one thing in common: I didn't write them!
 </p>
@@ -28,9 +28,9 @@
 Sure, they do the job perfectly well and there is no reason to make any sort of replacement for them, but that's not the attitude anyone learns from. So why don't you join me as I try to figure out how to write the world's worst package manager for linux.
 </p>
 </div>
-<div id="outline-container-org61882c8" class="outline-3">
-<h3 id="org61882c8">What is a package manager</h3>
-<div class="outline-text-3" id="text-org61882c8">
+<div id="outline-container-orge00f5b1" class="outline-3">
+<h3 id="orge00f5b1">What is a package manager</h3>
+<div class="outline-text-3" id="text-orge00f5b1">
 <p>
 You should really know this, if you are here reading this article. I'll give you the benefit of the doubt, though. A package manager, in short, is software that automates the install, update, remove steps of software. It also configures it depending on the distributions' opinion. Yes, this means that there is actually more to installing something than:
 </p>
@@ -44,29 +44,29 @@ There is actually quite a lot more going on. All of the pain of configuring, bui
 </p>
 </div>
 </div>
-<div id="outline-container-org402a8fe" class="outline-3">
-<h3 id="org402a8fe">Anatomy of a package manager</h3>
-<div class="outline-text-3" id="text-org402a8fe">
+<div id="outline-container-orgb7296da" class="outline-3">
+<h3 id="orgb7296da">Anatomy of a package manager</h3>
+<div class="outline-text-3" id="text-orgb7296da">
 </div>
-<div id="outline-container-org565e6a3" class="outline-4">
-<h4 id="org565e6a3">Software to handle user input</h4>
-<div class="outline-text-4" id="text-org565e6a3">
+<div id="outline-container-org43cae8d" class="outline-4">
+<h4 id="org43cae8d">Software to handle user input</h4>
+<div class="outline-text-4" id="text-org43cae8d">
 <p>
 This is what most people will recognize as a package manager. It takes in the package name, what action the user wants to do with it (<code>install</code>, <code>remove</code>, <code>update</code>, &amp;c) and any optional flags.
 </p>
 </div>
 </div>
-<div id="outline-container-orgea6404f" class="outline-4">
-<h4 id="orgea6404f">Repository for supported packages</h4>
-<div class="outline-text-4" id="text-orgea6404f">
+<div id="outline-container-orgef55d86" class="outline-4">
+<h4 id="orgef55d86">Repository for supported packages</h4>
+<div class="outline-text-4" id="text-orgef55d86">
 <p>
 For a package manager to actually manage a package, it needs to know about it. The repository is a place to store information on how to get the package, where to get it, which build options it needs, and what patches or additional flags need to be set to maintain stability in the distribution it is serving. How all this information is stored varies from package manager; some such as <code>guix</code> writes all of this information out in declarative <code>guile scheme</code>, some like <code>xbps</code> write it in shell script. More on this decision later, when we talk about dependencies. 
 </p>
 </div>
 </div>
-<div id="outline-container-org7fe0dd1" class="outline-4">
-<h4 id="org7fe0dd1">Software to build supported packages</h4>
-<div class="outline-text-4" id="text-org7fe0dd1">
+<div id="outline-container-orgc70ec26" class="outline-4">
+<h4 id="orgc70ec26">Software to build supported packages</h4>
+<div class="outline-text-4" id="text-orgc70ec26">
 <p>
 This is where the magic happens. The user's input and the repositories definition of the package come together here to build the dependencies and the package. If the package manager is source-based, as in the user is expected to build everything from source, this is in the same domain as the first software messaged. In other cases, this is used by people running build servers for the package manager, called mirrors. When a package definition is updated they rebuild it from definition, and host it on their mirror. Then, depending on the users definition of which mirrors to use, the user will retrieve the already-built package and move onto the next step.
 </p>
@@ -80,9 +80,9 @@ The binary-based package managers are convenient for saving time and energy for 
 </p>
 </div>
 </div>
-<div id="outline-container-org00a12fc" class="outline-4">
-<h4 id="org00a12fc">Installing the software</h4>
-<div class="outline-text-4" id="text-org00a12fc">
+<div id="outline-container-org7a16805" class="outline-4">
+<h4 id="org7a16805">Installing the software</h4>
+<div class="outline-text-4" id="text-org7a16805">
 <p>
 The final step of the journey for a package is putting it somewhere the user can use it. The software will also keep track of what it just installed, so the user can query the package manager at a later date about the package. More sophisticated package managers will also gracefully handle multiple versions of a dependency co-existing.
 </p>
@@ -90,9 +90,9 @@ The final step of the journey for a package is putting it somewhere the user can
 </div>
 </div>
 
-<div id="outline-container-org35b326d" class="outline-3">
-<h3 id="org35b326d">What we are going to write</h3>
-<div class="outline-text-3" id="text-org35b326d">
+<div id="outline-container-orgb9d913d" class="outline-3">
+<h3 id="orgb9d913d">What we are going to write</h3>
+<div class="outline-text-3" id="text-orgb9d913d">
 <p>
 Now that we know the general idea of what a package manager is, it's important to set goals and limitations for the project. This is a hobby project after all, and we don't need to burden ourselves with things like security issues, build servers, or most of the nice-to-have functionality described above. In fact, we are going to support only a single package for now.
 </p>
@@ -107,9 +107,9 @@ Now that we know the general idea of what a package manager is, it's important t
 </div>
 </div>
 
-<div id="outline-container-org45d47cd" class="outline-3">
-<h3 id="org45d47cd">Let's get cracking</h3>
-<div class="outline-text-3" id="text-org45d47cd">
+<div id="outline-container-orgafffa2f" class="outline-3">
+<h3 id="orgafffa2f">Let's get cracking</h3>
+<div class="outline-text-3" id="text-orgafffa2f">
 <p>
 First, for this project I've decided on a code-name of <code>romi</code>, and the package repository as <code>romi-pkgs</code>. I'll be referring to them as such from now on.
 </p>
@@ -255,9 +255,9 @@ I'll leave it up to you to figure out what the <code>dry-run</code> flag does!
 </div>
 </div>
 
-<div id="outline-container-org6bbd7ed" class="outline-3">
-<h3 id="org6bbd7ed">Wrapping up</h3>
-<div class="outline-text-3" id="text-org6bbd7ed">
+<div id="outline-container-org7ddd049" class="outline-3">
+<h3 id="org7ddd049">Wrapping up</h3>
+<div class="outline-text-3" id="text-org7ddd049">
 <p>
 We set our definition for our package manager, wrote some code and managed to pull exactly one package with some metadata. Next time, we are going to write some shell scripts to unpack the file, set our configurations, and then build it.
 </p>
