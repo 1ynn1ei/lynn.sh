@@ -1,0 +1,159 @@
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+INCLUDE: "~/git/lynn.sh/matter/header.org"
+* Let's make a package manager (1)
+=pacman=, =aptitude=, =portage=, =xbps=, and other linux package managers all have one thing in common: I didn't write them!
+
+Sure, they do the job perfectly well and there is no reason to make any sort of replacement for them, but that's not the attitude anyone learns from. So why don't you join me as I try to figure out how to write the world's worst package manager for linux.
+** What is a package manager
+You should really know this, if you are here reading this article. I'll give you the benefit of the doubt, though. A package manager, in short, is software that automates the install, update, remove steps of software. It also configures it depending on the distributions' opinion. Yes, this means that there is actually more to installing something than:
+#+begin_src shell
+sudo apt get {package}
+#+end_src
+
+There is actually quite a lot more going on. All of the pain of configuring, building, and packing dependencies is pushed onto the particle package manager's maintainer(s).
+** Anatomy of a package manager
+*** Software to handle user input
+This is what most people will recognize as a package manager. It takes in the package name, what action the user wants to do with it (=install=, =remove=, =update=, &c) and any optional flags.
+*** Repository for supported packages
+For a package manager to actually manage a package, it needs to know about it. The repository is a place to store information on how to get the package, where to get it, which build options it needs, and what patches or additional flags need to be set to maintain stability in the distribution it is serving. How all this information is stored varies from package manager; some such as =guix= writes all of this information out in declarative =guile scheme=, some like =xbps= write it in shell script. More on this decision later, when we talk about dependencies. 
+*** Software to build supported packages
+This is where the magic happens. The user's input and the repositories definition of the package come together here to build the dependencies and the package. If the package manager is source-based, as in the user is expected to build everything from source, this is in the same domain as the first software messaged. In other cases, this is used by people running build servers for the package manager, called mirrors. When a package definition is updated they rebuild it from definition, and host it on their mirror. Then, depending on the users definition of which mirrors to use, the user will retrieve the already-built package and move onto the next step.
+
+Source-based package managers allow the user to build for their system and their hardware. It means the user can have a level of implicit trust, as they can theoretically audit the code before building.
+
+The binary-based package managers are convenient for saving time and energy for the user, as they don't need to build anything. The packages are built for maximum compatibility, which can also make things easier for the user. The binary will have a hashed sum that the user (or, in almost all cases the software) will verify with before installing to reduce the surface area that is vulnerable to attack. 
+*** Installing the software
+The final step of the journey for a package is putting it somewhere the user can use it. The software will also keep track of what it just installed, so the user can query the package manager at a later date about the package. More sophisticated package managers will also gracefully handle multiple versions of a dependency co-existing.
+
+** What we are going to write
+Now that we know the general idea of what a package manager is, it's important to set goals and limitations for the project. This is a hobby project after all, and we don't need to burden ourselves with things like security issues, build servers, or most of the nice-to-have functionality described above. In fact, we are going to support only a single package for now.
+
+*The following will be used to describe the package manager in it's repository:*
+
+/A source-based hobby package manager, written to assist minimal systems with package maintenance and installation. Packages are always built from source, from a tarball, definitions are written in shell script to reduce dependencies as much as possible. Dependencies will be described in the definition for a package, but if a dependency is then updated by the user directly there will be no further checks for compatibility./
+
+** Let's get cracking
+First, for this project I've decided on a code-name of =romi=, and the package repository as =romi-pkgs=. I'll be referring to them as such from now on.
+
+#+begin_src c
+#include <curl/curl.h>
+#include <getopt.h>
+#include <stdio.h>
+#include <string.h>
+
+
+const char *myname;
+static int verbose_flag, dry_run_flag;
+static const struct option long_options[]
+    = { { "verbose", no_argument, &verbose_flag, 1 },
+        { "dry", no_argument, &dry_run_flag, 1 },
+        { NULL, 0, NULL, '\0' } };
+static void download (char *);
+struct pkg
+{
+  char *name, *fname, *url, *version;
+};
+
+int
+main (int argc, char **argv)
+{
+  if (argc < 2)
+    return -1;
+  myname = argv[0];
+
+  int c;
+  while ((c = getopt_long (argc, argv, "vd", long_options, NULL)) != -1)
+    {
+      switch (c)
+        {
+        case 'v':
+          verbose_flag = 1;
+          break;
+        case 'd':
+          dry_run_flag = 1;
+          break;
+        case 0:
+          /* Do nothing */
+          break;
+        }
+    }
+  while (argv[optind] != NULL)
+    {
+      download (argv[optind]); // single thread performance!
+      optind += 1;
+    }
+}
+#+end_src
+
+I won't go over too much here because it is pretty standard boiler-plate. Yes, it is in =GNU= coding style. If you are confused about =long_options=, =getopt_long=, or =optind= I recommend reading the documentation for =getopt=, one of our dependencies.
+
+We also need to add the =libcurl= to our linker:
+
+#+begin_src makefile
+CC = gcc
+CFLAGS=-Wall
+LDFLAGS=-lcurl
+all: main.o
+	$(CC) $(CFLAGS) -o romi main.o $(LDFLAGS)
+
+main.o: main.c
+	$(CC) -c main.c $(CFLAGS)
+clean:
+	rm -rf romi main.o
+.PHONY:
+	all
+#+end_src
+
+Finally we are going to define our download function. For now, it will only accept a single package: =binutils=. Specifically, version =2.24=, acquired from the =ftp.gnu.org= server. Let's have a look:
+#+begin_src c
+void
+download (char *query)
+{
+  CURL *curl;
+  FILE *fp;
+  CURLcode response;
+  struct pkg package;
+  if (strcmp (query, "binutils") == 0)
+    {
+      package.name = "binutils";
+      package.url = "https://ftp.gnu.org/gnu/binutils/binutils-2.42.tar.xz";
+      package.version = "2.24";
+      package.fname = "binutils-2.24.tar.xz";
+    }
+  fp = fopen (package.fname, "wb");
+  curl = curl_easy_init ();
+  curl_easy_setopt (curl, CURLOPT_URL, package.url);
+  curl_easy_setopt (curl, CURLOPT_WRITEDATA, fp);
+  if (verbose_flag)
+    curl_easy_setopt (curl, CURLOPT_VERBOSE, 1L);
+  if (!dry_run_flag)
+    response = curl_easy_perform (curl);
+  if (response == CURLE_OK)
+    {
+      // TODO
+    }
+  curl_easy_cleanup (curl);
+}
+#+end_src
+
+The =pkg= struct helps inform us of information that will be changing package to package, and how we might want to store that information in the future in our =romi-pkgs= repository.
+
+Let's test it out now. if we run:
+#+begin_src shell
+make
+./romi binutils
+#+end_src
+Nothing will happen for a few seconds, depending on your download speed, and then the program will exit. if we then =ls= we will see that the =binutils-2.24.tar.xz= has been added to the directory we are currently in.
+
+If we add the verbose tag, we pass it along to curl and you can see the actual nitty gritty details of the exchange:
+#+begin_src shell
+./romi binutils -v
+./romi binutils --verbose
+#+end_src
+
+I'll leave it up to you to figure out what the =dry-run= flag does!
+
+** Wrapping up
+We set our definition for our package manager, wrote some code and managed to pull exactly one package with some metadata. Next time, we are going to write some shell scripts to unpack the file, set our configurations, and then build it.
+
+The combination of the metadata we need for our =struct pkg=, combined with the inputs for those shell scripts, will give us the full picture of how we want to define our packages in our repository. 

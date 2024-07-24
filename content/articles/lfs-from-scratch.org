@@ -1,0 +1,137 @@
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="../style.css" />
+* Installation
+** Partitioning
+For partioning I referred to arch linux's excellent wiki, as well as the LFS hints page detailing the optimal partitioning of a desk.
+Preferring to use GPT due to large disk size (m.2 drive of 1TiB) and future-proofing.
+Using the Extended Boot Loader Partition type for my =/boot= partition, despite the LFS hint page saying they use ext2.
+Splitting out root directory =/= (20GiB) and =/home= directory to keep the userspace separate from any LFS rebuilding.
+** Formatting
+*** EFI System
+=mkfs.fat -F 32 /dev/nvme1n1p1= as GPT requires fat32
+*** /boot
+=mkfs -v -t ext2 /dev/nvme1n1p2= ext2, as we do not need the journaling feature of ext3 or ext4 for such a small partition.
+*** swap
+=mkswap /dev/nvme1n1p3= super simple, just make swap.
+*** root
+=mkfs -v -t ext4 /dev/nvme1n1p4= ext4 as it is a major partition in the linux filesystem.
+*** /home
+=mkfs -v -t ext4 /dev/nvme1n1p5= same as root, this partition only exists to separate the root out from userspace.
+** Mounting
+Nothing major here, just need to remember to mount both =/= and =/home=, as well as swap using =/sbin/swapon -v /dev/nvme1n1p3=
+** Cross-compile
+*** binutils
+real =0m19.261s=
+*** gcc
+pass1: real =1m48.489s=
+
+pass2: real =3m12.645s=
+*** glibc
+real =0m37.319s=
+*** ncurses
+built this wrong the first time, leading to a linker error when making bash.
+*** tar
+tar being delivered in a tar ball is a special type of comedy.
+** Chroot
+A lot of the setup in chroot chapter needs to be thoroughly re-re-read, mostly the associated standards.
+*** glibc
+real =0m38.184s= tests =13m18.205s=
+*** gcc
+real =3m28.512s= tests =14m58.613s=
+*** gettext
+it was necessary to clear out the previous source folder for gettext and do a clean =tar -xvf gettext-...= for it to install properly.
+*** GDBM
+why don't we remove the static library =libgdbm_comat.la=?
+*** expat
+for some reason this tarball wasn't in the original list so i had to grab it.
+*** open-ssl
+an incredibly important package to keep an eye on for updates.
+*** coreutils
+running into issue not finding =aclocal=. this was caused by somehow skipping =automake= :^)
+*** gawk
+it was around this point that my 20GiB partition for root was no longer satisfactory, so i had to clean up some of the source files. the biggest gain was from taking out the =gcc= directory. from this point on i clean up the directories after installing.
+*** patch
+first stumper: have an issue with =/lib/getopt-cdefs.h:32:5: error: #if with no expression= and i do not know why. a fresh tarball and =configure= seemed to have fixed the issue, though.
+*** tar
+testing tar i ran into space issues again. running =du -h . | sort -n -r | head - n 20= showed me that the linux kernel that was previously unpacked was taking up a lot of space, so i got rid of that along with a few other offenders.
+*** vim
+i did emacs instead :^)
+*** emacs
+**** nettle
+**** libtasn1
+**** libunistring
+**** p11-kit
+**** gnutools
+** kernel
+i won't go into all the settings i did. building the kernel took real =1m8.923s=
+** grub
+rebooted, having some issues. UEFI doesn't see it as bootable (obviously) but my 'host' OS was just a live linux environment. the real host OS is windows, so it just boots straight into that.
+* TODO Recovering from a failed grub
+first we have to re-mount the drives
+#+begin_src bash
+export LFS = /mnt/lfs
+sudo mkdir -pv $LFS
+sudo mount -v -t ext4 /dev/nvme1n1p4 $LFS
+sudo mkdir -pv $LFS/home
+sudo mount -v -t ext4 /dev/nvme1n1p5 $LFS/home
+sudo /sbin/swapon -v /dev/nvme1n1p3
+#+end_src
+we already have installed the kernel, but all the important things are mounted during the boot of our system. this means things like =devtmpfs= is not mounted to =/dev= right now.
+#+begin_src bash
+sudo makedir -pv $LFS/{dev,proc,sys,run} # just incase we didn't have it already
+
+sudo mount -v --bind /dev $LFS/dev
+sudo mount -vt devpts devpts -o gid=5,mode=0620 $LFS/dev/pts
+sudo mount -vt proc proc $LFS/proc
+sudo mount -vt sysfs sysfs $LFS/sys
+sudo mount -vt tmpfs tmpfs $LFS/run
+#+end_src
+
+#+begin_src bash
+chroom $LFS /usr/bin/env -i \
+       HOME=/root           \
+       TERM="$TERM"         \
+       PS1='(lfs chroot) \u:\w\$' \
+       PATH=/usr/bin:/usr/sbin \
+       MAKEFLAGS="-j24"     \
+       TESTSUITEFLAGS="-j24" \
+       /bin/bash --login
+#+end_src
+and we're back in. the first important thing to check is the linux kernel's =.config= to ensure it has all the UEFI flags turned on.
+#+begin_src bash
+cat .config | grep -i efi.*=y$
+#+end_src
+the following shows up:
+#+begin_src conf
+CONFIG_EFI=y #
+CONFIG_EFI_STUB=y #
+CONFIG_EFI_HANDOVER_PROTOCOL=y
+CONFIG_EFI_MIXED=y
+CONFIG_EFI_RUNTIME_MAP=y
+CONFIG_PREFIX_SYMBOLS=y
+CONFIG_EFI_PARTITION=y # this is our GPT support
+CONFIG_DMI_SCAN_MACHINE_NON_EFI_FALLBACK=y
+CONFIG_EFI_ESRT=y
+CONFIG_EFI_DXE_MEM_ATTRIBUTES=y
+CONFIG_EFI_RUNTIME_WRAPPERS=y
+CONFIG_EFI_EARLYCON=y
+CONFIG_EFI_CUSTOM_SSDT_OVERLAYS=y
+#+end_src
+we need kernel support for the =vfat= file system
+#+begin_src bash
+cat .config | grep -i vfat.*=y$
+#+end_src
+#+begin_src conf
+CONFIG_VFAT_FS=y
+#+end_src
+we need to re-mount our =/boot/efi= and our =/boot=
+#+begin_src bash
+mount -vt ext2 /dev/nvme1n1p2 /boot
+mount --mkdir -v -t vfat /dev/nvme1n1p1 -o codepage=437,iocharset=iso8859-1 \
+      /boot/efi
+#+end_src
+okay, all the mounting and organizing is done. now for the next part: building grub for efi. im going to try and skip having to build =efibootmgr= if at all possible, which means we will be hard pathing the boot loader.
+#+begin_src bash
+make clean # i dont want anything we did before interfering
+# TODO just copy the lines from the LFS documentation
+#+end_src
+

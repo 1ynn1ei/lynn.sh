@@ -1,8 +1,10 @@
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="style.css" />
 #+TITLE: lynn.sh
 #+DESCRIPTION: Where the lynn is
 #+INCLUDE: "~/git/lynn.sh/matter/header.org"
-
-* TODO who
-* what
-* why
-* where
+#+begin_src emacs-lisp
+(require 'gay-mode)
+#+end_src
+#+begin_export html
+<a rel="me" href="https://tech.lgbt/@lynn_sh">Mastodon</a>
+#+end_export

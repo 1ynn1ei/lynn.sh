@@ -1,5 +1,6 @@
 #+TITLE: Sitemap for project org-site:main
 
 - [[file:index.org][lynn.sh]]
-- notes
-  - [[file:notes/lfs-from-scratch.org][lfs-from-scratch]]
+- articles
+  - [[file:articles/lets-make-a-package-manager-part-1.org][lets-make-a-package-manager-part-1]]
+  - [[file:articles/lfs-from-scratch.org][lfs-from-scratch]]

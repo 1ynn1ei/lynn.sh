@@ -30,7 +30,13 @@
 	     :section-numbers nil
 	     :time-stamp-file nil
 	     :auto-sitemap t
-	     :publishing-fuction 'org-html-publish-to-html)))
+	     :publishing-fuction 'org-html-publish-to-html)
+      (list "org-site:static"
+	    :recursive t
+	    :base-directory "./static"
+	    :base-extension "css"
+	    :publishing-directory "./public"
+	    :publishing-function 'org-publish-attachment)))
 (setq org-html-validation-link nil            ;; Don't show validation link
       org-html-head-include-scripts nil       ;; Use our own scripts
       org-html-head-include-default-style nil ;; Use our own styles

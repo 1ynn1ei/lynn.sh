@@ -11,13 +11,13 @@
 </head>
 <body>
 <div id="content" class="content">
-<div id="outline-container-org9cee09e" class="outline-2">
-<h2 id="org9cee09e">WORKING Chapters 1 to 4</h2>
-<div class="outline-text-2" id="text-org9cee09e">
+<div id="outline-container-org1b12465" class="outline-2">
+<h2 id="org1b12465">WORKING Chapters 1 to 4</h2>
+<div class="outline-text-2" id="text-org1b12465">
 </div>
-<div id="outline-container-org42630cf" class="outline-3">
-<h3 id="org42630cf">Partitioning</h3>
-<div class="outline-text-3" id="text-org42630cf">
+<div id="outline-container-org26f2646" class="outline-3">
+<h3 id="org26f2646">Partitioning</h3>
+<div class="outline-text-3" id="text-org26f2646">
 <p>
 For partioning I referred to arch linux's excellent wiki, as well as the LFS hints page detailing the optimal partitioning of a desk.
 Preferring to use GPT due to large disk size (m.2 drive of 1TiB) and future-proofing.
@@ -26,74 +26,74 @@ Splitting out root directory <code>/</code> (20GiB) and <code>/home</code> direc
 </p>
 </div>
 </div>
-<div id="outline-container-org034c85b" class="outline-3">
-<h3 id="org034c85b">Formatting</h3>
-<div class="outline-text-3" id="text-org034c85b">
+<div id="outline-container-org6a3408e" class="outline-3">
+<h3 id="org6a3408e">Formatting</h3>
+<div class="outline-text-3" id="text-org6a3408e">
 </div>
-<div id="outline-container-org16392e0" class="outline-4">
-<h4 id="org16392e0">EFI System</h4>
-<div class="outline-text-4" id="text-org16392e0">
+<div id="outline-container-org82fae1f" class="outline-4">
+<h4 id="org82fae1f">EFI System</h4>
+<div class="outline-text-4" id="text-org82fae1f">
 <p>
 <code>mkfs.fat -F 32 /dev/nvme1n1p1</code> as GPT requires fat32
 </p>
 </div>
 </div>
-<div id="outline-container-orge1812fe" class="outline-4">
-<h4 id="orge1812fe">/boot</h4>
-<div class="outline-text-4" id="text-orge1812fe">
+<div id="outline-container-orgf509f6e" class="outline-4">
+<h4 id="orgf509f6e">/boot</h4>
+<div class="outline-text-4" id="text-orgf509f6e">
 <p>
 <code>mkfs -v -t ext2 /dev/nvme1n1p2</code> ext2, as we do not need the journaling feature of ext3 or ext4 for such a small partition.
 </p>
 </div>
 </div>
-<div id="outline-container-orgbc26bdf" class="outline-4">
-<h4 id="orgbc26bdf">swap</h4>
-<div class="outline-text-4" id="text-orgbc26bdf">
+<div id="outline-container-org21d9153" class="outline-4">
+<h4 id="org21d9153">swap</h4>
+<div class="outline-text-4" id="text-org21d9153">
 <p>
 <code>mkswap /dev/nvme1n1p3</code> super simple, just make swap.
 </p>
 </div>
 </div>
-<div id="outline-container-org64b9c3e" class="outline-4">
-<h4 id="org64b9c3e">root</h4>
-<div class="outline-text-4" id="text-org64b9c3e">
+<div id="outline-container-orgdfb1245" class="outline-4">
+<h4 id="orgdfb1245">root</h4>
+<div class="outline-text-4" id="text-orgdfb1245">
 <p>
 <code>mkfs -v -t ext4 /dev/nvme1n1p4</code> ext4 as it is a major partition in the linux filesystem.
 </p>
 </div>
 </div>
-<div id="outline-container-org48799c8" class="outline-4">
-<h4 id="org48799c8">/home</h4>
-<div class="outline-text-4" id="text-org48799c8">
+<div id="outline-container-orgdba74fc" class="outline-4">
+<h4 id="orgdba74fc">/home</h4>
+<div class="outline-text-4" id="text-orgdba74fc">
 <p>
 <code>mkfs -v -t ext4 /dev/nvme1n1p5</code> same as root, this partition only exists to separate the root out from userspace.
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-org8a04aa4" class="outline-3">
-<h3 id="org8a04aa4">Mounting</h3>
-<div class="outline-text-3" id="text-org8a04aa4">
+<div id="outline-container-orgfd2c4cf" class="outline-3">
+<h3 id="orgfd2c4cf">Mounting</h3>
+<div class="outline-text-3" id="text-orgfd2c4cf">
 <p>
 Nothing major here, just need to remember to mount both <code>/</code> and <code>/home</code>, as well as swap using <code>/sbin/swapon -v /dev/nvme1n1p3</code>
 </p>
 </div>
 </div>
-<div id="outline-container-org2b75de9" class="outline-3">
-<h3 id="org2b75de9">Cross-compile</h3>
-<div class="outline-text-3" id="text-org2b75de9">
+<div id="outline-container-org2cf322b" class="outline-3">
+<h3 id="org2cf322b">Cross-compile</h3>
+<div class="outline-text-3" id="text-org2cf322b">
 </div>
-<div id="outline-container-orgbf6fbab" class="outline-4">
-<h4 id="orgbf6fbab">binutils</h4>
-<div class="outline-text-4" id="text-orgbf6fbab">
+<div id="outline-container-org6f885b0" class="outline-4">
+<h4 id="org6f885b0">binutils</h4>
+<div class="outline-text-4" id="text-org6f885b0">
 <p>
 real <code>0m19.261s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-org13bba9a" class="outline-4">
-<h4 id="org13bba9a">gcc</h4>
-<div class="outline-text-4" id="text-org13bba9a">
+<div id="outline-container-org842a76d" class="outline-4">
+<h4 id="org842a76d">gcc</h4>
+<div class="outline-text-4" id="text-org842a76d">
 <p>
 pass1: real <code>1m48.489s</code>
 </p>
@@ -103,57 +103,57 @@ pass2: real <code>3m12.645s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-orgd7c9ea8" class="outline-4">
-<h4 id="orgd7c9ea8">glibc</h4>
-<div class="outline-text-4" id="text-orgd7c9ea8">
+<div id="outline-container-org4f2c7df" class="outline-4">
+<h4 id="org4f2c7df">glibc</h4>
+<div class="outline-text-4" id="text-org4f2c7df">
 <p>
 real <code>0m37.319s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-orge4ca40a" class="outline-4">
-<h4 id="orge4ca40a">ncurses</h4>
-<div class="outline-text-4" id="text-orge4ca40a">
+<div id="outline-container-orge43c800" class="outline-4">
+<h4 id="orge43c800">ncurses</h4>
+<div class="outline-text-4" id="text-orge43c800">
 <p>
 built this wrong the first time, leading to a linker error when making bash.
 </p>
 </div>
 </div>
-<div id="outline-container-org102f096" class="outline-4">
-<h4 id="org102f096">tar</h4>
-<div class="outline-text-4" id="text-org102f096">
+<div id="outline-container-org939f9e6" class="outline-4">
+<h4 id="org939f9e6">tar</h4>
+<div class="outline-text-4" id="text-org939f9e6">
 <p>
 tar being delivered in a tar ball is a special type of comedy.
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-org61c86eb" class="outline-3">
-<h3 id="org61c86eb">Chroot</h3>
-<div class="outline-text-3" id="text-org61c86eb">
+<div id="outline-container-org7563e53" class="outline-3">
+<h3 id="org7563e53">Chroot</h3>
+<div class="outline-text-3" id="text-org7563e53">
 <p>
 A lot of the setup in chroot chapter needs to be thoroughly re-re-read, mostly the associated standards.
 </p>
 </div>
-<div id="outline-container-org740e317" class="outline-4">
-<h4 id="org740e317">glibc</h4>
-<div class="outline-text-4" id="text-org740e317">
+<div id="outline-container-org285feb4" class="outline-4">
+<h4 id="org285feb4">glibc</h4>
+<div class="outline-text-4" id="text-org285feb4">
 <p>
 real <code>0m38.184s</code> tests <code>13m18.205s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-org9a7dc00" class="outline-4">
-<h4 id="org9a7dc00">gcc</h4>
-<div class="outline-text-4" id="text-org9a7dc00">
+<div id="outline-container-org7f84b40" class="outline-4">
+<h4 id="org7f84b40">gcc</h4>
+<div class="outline-text-4" id="text-org7f84b40">
 <p>
 real <code>3m28.512s</code> tests <code>14m58.613s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-orgcfc5ffa" class="outline-4">
-<h4 id="orgcfc5ffa">gettext</h4>
-<div class="outline-text-4" id="text-orgcfc5ffa">
+<div id="outline-container-org052ccd3" class="outline-4">
+<h4 id="org052ccd3">gettext</h4>
+<div class="outline-text-4" id="text-org052ccd3">
 <p>
 it was necessary to clear out the previous source folder for gettext and do a clean <code>tar -xvf gettext-...</code> for it to install properly.
 </p>
@@ -161,11 +161,11 @@ it was necessary to clear out the previous source folder for gettext and do a cl
 </div>
 </div>
 </div>
-<div id="outline-container-org246bff7" class="outline-2">
-<h2 id="org246bff7"><span class="todo TODO">TODO</span> Chapters 5 to 6</h2>
+<div id="outline-container-org87e7855" class="outline-2">
+<h2 id="org87e7855"><span class="todo TODO">TODO</span> Chapters 5 to 6</h2>
 </div>
-<div id="outline-container-org2b14308" class="outline-2">
-<h2 id="org2b14308"><span class="todo TODO">TODO</span> Chapters 7 to 10</h2>
+<div id="outline-container-orge75e0fb" class="outline-2">
+<h2 id="orge75e0fb"><span class="todo TODO">TODO</span> Chapters 7 to 10</h2>
 </div>
 </div>
 <div id="postamble" class="status">

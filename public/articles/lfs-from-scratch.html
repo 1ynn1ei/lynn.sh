@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English" xml:lang="English">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>&lrm;</title>
+<meta name="generator" content="Org Mode" />
+<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+<link rel="stylesheet" type="text/css" href="../style.css" />
+</head>
+<body>
+<div id="content" class="content">
+<div id="outline-container-org28af1d9" class="outline-2">
+<h2 id="org28af1d9">Installation</h2>
+<div class="outline-text-2" id="text-org28af1d9">
+</div>
+<div id="outline-container-org4fe22b4" class="outline-3">
+<h3 id="org4fe22b4">Partitioning</h3>
+<div class="outline-text-3" id="text-org4fe22b4">
+<p>
+For partioning I referred to arch linux's excellent wiki, as well as the LFS hints page detailing the optimal partitioning of a desk.
+Preferring to use GPT due to large disk size (m.2 drive of 1TiB) and future-proofing.
+Using the Extended Boot Loader Partition type for my <code>/boot</code> partition, despite the LFS hint page saying they use ext2.
+Splitting out root directory <code>/</code> (20GiB) and <code>/home</code> directory to keep the userspace separate from any LFS rebuilding.
+</p>
+</div>
+</div>
+<div id="outline-container-org58de362" class="outline-3">
+<h3 id="org58de362">Formatting</h3>
+<div class="outline-text-3" id="text-org58de362">
+</div>
+<div id="outline-container-org072f7ef" class="outline-4">
+<h4 id="org072f7ef">EFI System</h4>
+<div class="outline-text-4" id="text-org072f7ef">
+<p>
+<code>mkfs.fat -F 32 /dev/nvme1n1p1</code> as GPT requires fat32
+</p>
+</div>
+</div>
+<div id="outline-container-org8fb06f9" class="outline-4">
+<h4 id="org8fb06f9">/boot</h4>
+<div class="outline-text-4" id="text-org8fb06f9">
+<p>
+<code>mkfs -v -t ext2 /dev/nvme1n1p2</code> ext2, as we do not need the journaling feature of ext3 or ext4 for such a small partition.
+</p>
+</div>
+</div>
+<div id="outline-container-org0e30e44" class="outline-4">
+<h4 id="org0e30e44">swap</h4>
+<div class="outline-text-4" id="text-org0e30e44">
+<p>
+<code>mkswap /dev/nvme1n1p3</code> super simple, just make swap.
+</p>
+</div>
+</div>
+<div id="outline-container-org6aa24f5" class="outline-4">
+<h4 id="org6aa24f5">root</h4>
+<div class="outline-text-4" id="text-org6aa24f5">
+<p>
+<code>mkfs -v -t ext4 /dev/nvme1n1p4</code> ext4 as it is a major partition in the linux filesystem.
+</p>
+</div>
+</div>
+<div id="outline-container-orgaddde10" class="outline-4">
+<h4 id="orgaddde10">/home</h4>
+<div class="outline-text-4" id="text-orgaddde10">
+<p>
+<code>mkfs -v -t ext4 /dev/nvme1n1p5</code> same as root, this partition only exists to separate the root out from userspace.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orga5a1780" class="outline-3">
+<h3 id="orga5a1780">Mounting</h3>
+<div class="outline-text-3" id="text-orga5a1780">
+<p>
+Nothing major here, just need to remember to mount both <code>/</code> and <code>/home</code>, as well as swap using <code>/sbin/swapon -v /dev/nvme1n1p3</code>
+</p>
+</div>
+</div>
+<div id="outline-container-orgd8b0021" class="outline-3">
+<h3 id="orgd8b0021">Cross-compile</h3>
+<div class="outline-text-3" id="text-orgd8b0021">
+</div>
+<div id="outline-container-org1968ec7" class="outline-4">
+<h4 id="org1968ec7">binutils</h4>
+<div class="outline-text-4" id="text-org1968ec7">
+<p>
+real <code>0m19.261s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-org74b80e9" class="outline-4">
+<h4 id="org74b80e9">gcc</h4>
+<div class="outline-text-4" id="text-org74b80e9">
+<p>
+pass1: real <code>1m48.489s</code>
+</p>
+
+<p>
+pass2: real <code>3m12.645s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-orga960093" class="outline-4">
+<h4 id="orga960093">glibc</h4>
+<div class="outline-text-4" id="text-orga960093">
+<p>
+real <code>0m37.319s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-org3dfe76f" class="outline-4">
+<h4 id="org3dfe76f">ncurses</h4>
+<div class="outline-text-4" id="text-org3dfe76f">
+<p>
+built this wrong the first time, leading to a linker error when making bash.
+</p>
+</div>
+</div>
+<div id="outline-container-org3141af3" class="outline-4">
+<h4 id="org3141af3">tar</h4>
+<div class="outline-text-4" id="text-org3141af3">
+<p>
+tar being delivered in a tar ball is a special type of comedy.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgc33ef36" class="outline-3">
+<h3 id="orgc33ef36">Chroot</h3>
+<div class="outline-text-3" id="text-orgc33ef36">
+<p>
+A lot of the setup in chroot chapter needs to be thoroughly re-re-read, mostly the associated standards.
+</p>
+</div>
+<div id="outline-container-org650982e" class="outline-4">
+<h4 id="org650982e">glibc</h4>
+<div class="outline-text-4" id="text-org650982e">
+<p>
+real <code>0m38.184s</code> tests <code>13m18.205s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-orgbf6bdbe" class="outline-4">
+<h4 id="orgbf6bdbe">gcc</h4>
+<div class="outline-text-4" id="text-orgbf6bdbe">
+<p>
+real <code>3m28.512s</code> tests <code>14m58.613s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-orgf4d020b" class="outline-4">
+<h4 id="orgf4d020b">gettext</h4>
+<div class="outline-text-4" id="text-orgf4d020b">
+<p>
+it was necessary to clear out the previous source folder for gettext and do a clean <code>tar -xvf gettext-...</code> for it to install properly.
+</p>
+</div>
+</div>
+<div id="outline-container-org8c4153d" class="outline-4">
+<h4 id="org8c4153d">GDBM</h4>
+<div class="outline-text-4" id="text-org8c4153d">
+<p>
+why don't we remove the static library <code>libgdbm_comat.la</code>?
+</p>
+</div>
+</div>
+<div id="outline-container-org575fed9" class="outline-4">
+<h4 id="org575fed9">expat</h4>
+<div class="outline-text-4" id="text-org575fed9">
+<p>
+for some reason this tarball wasn't in the original list so i had to grab it.
+</p>
+</div>
+</div>
+<div id="outline-container-org0edef00" class="outline-4">
+<h4 id="org0edef00">open-ssl</h4>
+<div class="outline-text-4" id="text-org0edef00">
+<p>
+an incredibly important package to keep an eye on for updates.
+</p>
+</div>
+</div>
+<div id="outline-container-org2c448c7" class="outline-4">
+<h4 id="org2c448c7">coreutils</h4>
+<div class="outline-text-4" id="text-org2c448c7">
+<p>
+running into issue not finding <code>aclocal</code>. this was caused by somehow skipping <code>automake</code> :^)
+</p>
+</div>
+</div>
+<div id="outline-container-orgc5f82b5" class="outline-4">
+<h4 id="orgc5f82b5">gawk</h4>
+<div class="outline-text-4" id="text-orgc5f82b5">
+<p>
+it was around this point that my 20GiB partition for root was no longer satisfactory, so i had to clean up some of the source files. the biggest gain was from taking out the <code>gcc</code> directory. from this point on i clean up the directories after installing.
+</p>
+</div>
+</div>
+<div id="outline-container-orgdba1826" class="outline-4">
+<h4 id="orgdba1826">patch</h4>
+<div class="outline-text-4" id="text-orgdba1826">
+<p>
+first stumper: have an issue with <code>/lib/getopt-cdefs.h:32:5: error: #if with no expression</code> and i do not know why. a fresh tarball and <code>configure</code> seemed to have fixed the issue, though.
+</p>
+</div>
+</div>
+<div id="outline-container-org4d14937" class="outline-4">
+<h4 id="org4d14937">tar</h4>
+<div class="outline-text-4" id="text-org4d14937">
+<p>
+testing tar i ran into space issues again. running <code>du -h . | sort -n -r | head - n 20</code> showed me that the linux kernel that was previously unpacked was taking up a lot of space, so i got rid of that along with a few other offenders.
+</p>
+</div>
+</div>
+<div id="outline-container-orgc215f89" class="outline-4">
+<h4 id="orgc215f89">vim</h4>
+<div class="outline-text-4" id="text-orgc215f89">
+<p>
+i did emacs instead :^)
+</p>
+</div>
+</div>
+<div id="outline-container-orgcd73a98" class="outline-4">
+<h4 id="orgcd73a98">emacs</h4>
+<div class="outline-text-4" id="text-orgcd73a98">
+</div>
+<ul class="org-ul">
+<li><a id="orgd080598"></a>nettle<br /></li>
+<li><a id="org5107b25"></a>libtasn1<br /></li>
+<li><a id="orgfaffee1"></a>libunistring<br /></li>
+<li><a id="org2ccf34d"></a>p11-kit<br /></li>
+<li><a id="org99ba98f"></a>gnutools<br /></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgbfdb4f2" class="outline-3">
+<h3 id="orgbfdb4f2">kernel</h3>
+<div class="outline-text-3" id="text-orgbfdb4f2">
+<p>
+i won't go into all the settings i did. building the kernel took real <code>1m8.923s</code>
+</p>
+</div>
+</div>
+<div id="outline-container-orge257ef3" class="outline-3">
+<h3 id="orge257ef3">grub</h3>
+<div class="outline-text-3" id="text-orge257ef3">
+<p>
+rebooted, having some issues. UEFI doesn't see it as bootable (obviously) but my 'host' OS was just a live linux environment. the real host OS is windows, so it just boots straight into that.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgd726199" class="outline-2">
+<h2 id="orgd726199"><span class="todo TODO">TODO</span> Recovering from a failed grub</h2>
+<div class="outline-text-2" id="text-orgd726199">
+<p>
+first we have to re-mount the drives
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span class="org-builtin">export</span> LFS = /mnt/lfs
+sudo mkdir -pv $<span class="org-variable-name">LFS</span>
+sudo mount -v -t ext4 /dev/nvme1n1p4 $<span class="org-variable-name">LFS</span>
+sudo mkdir -pv $<span class="org-variable-name">LFS</span>/home
+sudo mount -v -t ext4 /dev/nvme1n1p5 $<span class="org-variable-name">LFS</span>/home
+sudo /sbin/swapon -v /dev/nvme1n1p3
+</pre>
+</div>
+<p>
+we already have installed the kernel, but all the important things are mounted during the boot of our system. this means things like <code>devtmpfs</code> is not mounted to <code>/dev</code> right now.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">sudo makedir -pv $<span class="org-variable-name">LFS</span>/{dev,proc,sys,run} <span class="org-comment-delimiter"># </span><span class="org-comment">just incase we didn't have it already</span>
+
+sudo mount -v --bind /dev $<span class="org-variable-name">LFS</span>/dev
+sudo mount -vt devpts devpts -o <span class="org-variable-name">gid</span>=5,<span class="org-variable-name">mode</span>=0620 $<span class="org-variable-name">LFS</span>/dev/pts
+sudo mount -vt proc proc $<span class="org-variable-name">LFS</span>/proc
+sudo mount -vt sysfs sysfs $<span class="org-variable-name">LFS</span>/sys
+sudo mount -vt tmpfs tmpfs $<span class="org-variable-name">LFS</span>/run
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-bash">chroom $<span class="org-variable-name">LFS</span> /usr/bin/env -i <span class="org-sh-escaped-newline">\</span>
+       <span class="org-variable-name">HOME</span>=/root           <span class="org-sh-escaped-newline">\</span>
+       <span class="org-variable-name">TERM</span>=<span class="org-string">"$TERM"</span>         <span class="org-sh-escaped-newline">\</span>
+       <span class="org-variable-name">PS1</span>=<span class="org-string">'(lfs chroot) \u:\w\$'</span> <span class="org-sh-escaped-newline">\</span>
+       <span class="org-variable-name">PATH</span>=/usr/bin:/usr/sbin <span class="org-sh-escaped-newline">\</span>
+       <span class="org-variable-name">MAKEFLAGS</span>=<span class="org-string">"-j24"</span>     <span class="org-sh-escaped-newline">\</span>
+       <span class="org-variable-name">TESTSUITEFLAGS</span>=<span class="org-string">"-j24"</span> <span class="org-sh-escaped-newline">\</span>
+       /bin/bash --login
+</pre>
+</div>
+<p>
+and we're back in. the first important thing to check is the linux kernel's <code>.config</code> to ensure it has all the UEFI flags turned on.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">cat .config | grep -i efi.*=y$
+</pre>
+</div>
+<p>
+the following shows up:
+</p>
+<div class="org-src-container">
+<pre class="src src-conf"><span class="org-variable-name">CONFIG_EFI</span>=y <span class="org-comment-delimiter">#</span>
+<span class="org-variable-name">CONFIG_EFI_STUB</span>=y <span class="org-comment-delimiter">#</span>
+<span class="org-variable-name">CONFIG_EFI_HANDOVER_PROTOCOL</span>=y
+<span class="org-variable-name">CONFIG_EFI_MIXED</span>=y
+<span class="org-variable-name">CONFIG_EFI_RUNTIME_MAP</span>=y
+<span class="org-variable-name">CONFIG_PREFIX_SYMBOLS</span>=y
+<span class="org-variable-name">CONFIG_EFI_PARTITION</span>=y <span class="org-comment-delimiter"># </span><span class="org-comment">this is our GPT support</span>
+<span class="org-variable-name">CONFIG_DMI_SCAN_MACHINE_NON_EFI_FALLBACK</span>=y
+<span class="org-variable-name">CONFIG_EFI_ESRT</span>=y
+<span class="org-variable-name">CONFIG_EFI_DXE_MEM_ATTRIBUTES</span>=y
+<span class="org-variable-name">CONFIG_EFI_RUNTIME_WRAPPERS</span>=y
+<span class="org-variable-name">CONFIG_EFI_EARLYCON</span>=y
+<span class="org-variable-name">CONFIG_EFI_CUSTOM_SSDT_OVERLAYS</span>=y
+</pre>
+</div>
+<p>
+we need kernel support for the <code>vfat</code> file system
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">cat .config | grep -i vfat.*=y$
+</pre>
+</div>
+<div class="org-src-container">
+<pre class="src src-conf"><span class="org-variable-name">CONFIG_VFAT_FS</span>=y
+</pre>
+</div>
+<p>
+we need to re-mount our <code>/boot/efi</code> and our <code>/boot</code>
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">mount -vt ext2 /dev/nvme1n1p2 /boot
+mount --mkdir -v -t vfat /dev/nvme1n1p1 -o <span class="org-variable-name">codepage</span>=437,<span class="org-variable-name">iocharset</span>=iso8859-1 <span class="org-sh-escaped-newline">\</span>
+      /boot/efi
+</pre>
+</div>
+<p>
+okay, all the mounting and organizing is done. now for the next part: building grub for efi. im going to try and skip having to build <code>efibootmgr</code> if at all possible, which means we will be hard pathing the boot loader.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">make clean <span class="org-comment-delimiter"># </span><span class="org-comment">i dont want anything we did before interfering</span>
+<span class="org-comment-delimiter"># </span><span class="org-comment">TODO just copy the lines from the LFS documentation</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="creator"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 29.4 (<a href="https://orgmode.org">Org</a> mode 9.6.15)</p>
+</div>
+</body>
+</html>
