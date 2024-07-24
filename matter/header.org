@@ -1,4 +1,3 @@
-#+DESCRIPTION:(require 'gay-mode)
 #+begin_export html
 <div id="top-matter">
 <p class="yeseva-one-regular">LYNN</p>

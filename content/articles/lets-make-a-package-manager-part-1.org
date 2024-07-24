@@ -1,5 +1,7 @@
 #+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+INCLUDE: "~/git/lynn.sh/matter/header.org"
+#+TITLE: Let's make a package manager
+#+DESCRIPTION: Let's write a package manager, from scratch, in the c programming language.
 * Let's make a package manager (1)
 =pacman=, =aptitude=, =portage=, =xbps=, and other linux package managers all have one thing in common: I didn't write them!
 

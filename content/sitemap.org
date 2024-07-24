@@ -2,5 +2,5 @@
 
 - [[file:index.org][lynn.sh]]
 - articles
-  - [[file:articles/lets-make-a-package-manager-part-1.org][lets-make-a-package-manager-part-1]]
+  - [[file:articles/lets-make-a-package-manager-part-1.org][Let's make a package manager]]
   - [[file:articles/lfs-from-scratch.org][lfs-from-scratch]]
