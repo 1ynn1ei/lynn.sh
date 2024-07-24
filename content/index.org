@@ -2,11 +2,5 @@
 #+TITLE: lynn.sh
 #+DESCRIPTION: Where the lynn is
 #+INCLUDE: "~/git/lynn.sh/matter/header.org"
-#+begin_src emacs-lisp
-(require 'gay-mode)
-#+end_src
-#+begin_export html
-<a rel="me" href="https://tech.lgbt/@lynn_sh">Mastodon</a>
-#+end_export
-
-[[./articles/lets-make-a-package-manager-part-1.html][Let's make a package manager: Part 1]]
+* Pages
+- [[./articles/lets-make-a-package-manager-part-1.html][ Let's make a package manager: Part 1]]

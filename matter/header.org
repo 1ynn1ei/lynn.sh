@@ -2,5 +2,7 @@
 <div id="top-matter">
 <p class="yeseva-one-regular">LYNN</p>
 </div>
+<a rel="me" href="https://tech.lgbt/@lynn_sh">Mastodon</a> | 
+<a rel="me" href="https://codeberg.org/lynn_sh">Codeberg</a>
 <hr>
 #+end_export

@@ -2,6 +2,7 @@
 #+INCLUDE: "~/git/lynn.sh/matter/header.org"
 #+TITLE: Let's make a package manager
 #+DESCRIPTION: Let's write a package manager, from scratch, in the c programming language.
+/You can find the code for this portion here: [[https://codeberg.org/lynn_sh/romi/src/branch/ll/part-1][romi]]/
 * Let's make a package manager (1)
 =pacman=, =aptitude=, =portage=, =xbps=, and other linux package managers all have one thing in common: I didn't write them!
 
