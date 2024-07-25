@@ -12,13 +12,13 @@
 </head>
 <body>
 <div id="content" class="content">
-<div id="outline-container-orgd1c8442" class="outline-2">
-<h2 id="orgd1c8442">Installation</h2>
-<div class="outline-text-2" id="text-orgd1c8442">
+<div id="outline-container-org66a4ef0" class="outline-2">
+<h2 id="org66a4ef0">Installation</h2>
+<div class="outline-text-2" id="text-org66a4ef0">
 </div>
-<div id="outline-container-orgefc4e45" class="outline-3">
-<h3 id="orgefc4e45">Partitioning</h3>
-<div class="outline-text-3" id="text-orgefc4e45">
+<div id="outline-container-orgb870426" class="outline-3">
+<h3 id="orgb870426">Partitioning</h3>
+<div class="outline-text-3" id="text-orgb870426">
 <p>
 For partioning I referred to arch linux's excellent wiki, as well as the LFS hints page detailing the optimal partitioning of a desk.
 Preferring to use GPT due to large disk size (m.2 drive of 1TiB) and future-proofing.
@@ -27,74 +27,74 @@ Splitting out root directory <code>/</code> (20GiB) and <code>/home</code> direc
 </p>
 </div>
 </div>
-<div id="outline-container-orgb963657" class="outline-3">
-<h3 id="orgb963657">Formatting</h3>
-<div class="outline-text-3" id="text-orgb963657">
+<div id="outline-container-orgda3b9b9" class="outline-3">
+<h3 id="orgda3b9b9">Formatting</h3>
+<div class="outline-text-3" id="text-orgda3b9b9">
 </div>
-<div id="outline-container-orgbafc703" class="outline-4">
-<h4 id="orgbafc703">EFI System</h4>
-<div class="outline-text-4" id="text-orgbafc703">
+<div id="outline-container-org9163dbb" class="outline-4">
+<h4 id="org9163dbb">EFI System</h4>
+<div class="outline-text-4" id="text-org9163dbb">
 <p>
 <code>mkfs.fat -F 32 /dev/nvme1n1p1</code> as GPT requires fat32
 </p>
 </div>
 </div>
-<div id="outline-container-orgb03de5e" class="outline-4">
-<h4 id="orgb03de5e">/boot</h4>
-<div class="outline-text-4" id="text-orgb03de5e">
+<div id="outline-container-org1f79dc2" class="outline-4">
+<h4 id="org1f79dc2">/boot</h4>
+<div class="outline-text-4" id="text-org1f79dc2">
 <p>
 <code>mkfs -v -t ext2 /dev/nvme1n1p2</code> ext2, as we do not need the journaling feature of ext3 or ext4 for such a small partition.
 </p>
 </div>
 </div>
-<div id="outline-container-org16ff163" class="outline-4">
-<h4 id="org16ff163">swap</h4>
-<div class="outline-text-4" id="text-org16ff163">
+<div id="outline-container-org544cea3" class="outline-4">
+<h4 id="org544cea3">swap</h4>
+<div class="outline-text-4" id="text-org544cea3">
 <p>
 <code>mkswap /dev/nvme1n1p3</code> super simple, just make swap.
 </p>
 </div>
 </div>
-<div id="outline-container-org9ab8a88" class="outline-4">
-<h4 id="org9ab8a88">root</h4>
-<div class="outline-text-4" id="text-org9ab8a88">
+<div id="outline-container-orgbc0496c" class="outline-4">
+<h4 id="orgbc0496c">root</h4>
+<div class="outline-text-4" id="text-orgbc0496c">
 <p>
 <code>mkfs -v -t ext4 /dev/nvme1n1p4</code> ext4 as it is a major partition in the linux filesystem.
 </p>
 </div>
 </div>
-<div id="outline-container-orgea88cd8" class="outline-4">
-<h4 id="orgea88cd8">/home</h4>
-<div class="outline-text-4" id="text-orgea88cd8">
+<div id="outline-container-org3c6224b" class="outline-4">
+<h4 id="org3c6224b">/home</h4>
+<div class="outline-text-4" id="text-org3c6224b">
 <p>
 <code>mkfs -v -t ext4 /dev/nvme1n1p5</code> same as root, this partition only exists to separate the root out from userspace.
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-org9c5f173" class="outline-3">
-<h3 id="org9c5f173">Mounting</h3>
-<div class="outline-text-3" id="text-org9c5f173">
+<div id="outline-container-orgd52ab06" class="outline-3">
+<h3 id="orgd52ab06">Mounting</h3>
+<div class="outline-text-3" id="text-orgd52ab06">
 <p>
 Nothing major here, just need to remember to mount both <code>/</code> and <code>/home</code>, as well as swap using <code>/sbin/swapon -v /dev/nvme1n1p3</code>
 </p>
 </div>
 </div>
-<div id="outline-container-orgb71658c" class="outline-3">
-<h3 id="orgb71658c">Cross-compile</h3>
-<div class="outline-text-3" id="text-orgb71658c">
+<div id="outline-container-orgd619028" class="outline-3">
+<h3 id="orgd619028">Cross-compile</h3>
+<div class="outline-text-3" id="text-orgd619028">
 </div>
-<div id="outline-container-org1cfd975" class="outline-4">
-<h4 id="org1cfd975">binutils</h4>
-<div class="outline-text-4" id="text-org1cfd975">
+<div id="outline-container-org99e351c" class="outline-4">
+<h4 id="org99e351c">binutils</h4>
+<div class="outline-text-4" id="text-org99e351c">
 <p>
 real <code>0m19.261s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-orgd8c3db7" class="outline-4">
-<h4 id="orgd8c3db7">gcc</h4>
-<div class="outline-text-4" id="text-orgd8c3db7">
+<div id="outline-container-orgf7282e4" class="outline-4">
+<h4 id="orgf7282e4">gcc</h4>
+<div class="outline-text-4" id="text-orgf7282e4">
 <p>
 pass1: real <code>1m48.489s</code>
 </p>
@@ -104,159 +104,159 @@ pass2: real <code>3m12.645s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-org0167196" class="outline-4">
-<h4 id="org0167196">glibc</h4>
-<div class="outline-text-4" id="text-org0167196">
+<div id="outline-container-org503f88e" class="outline-4">
+<h4 id="org503f88e">glibc</h4>
+<div class="outline-text-4" id="text-org503f88e">
 <p>
 real <code>0m37.319s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-orgea7c88a" class="outline-4">
-<h4 id="orgea7c88a">ncurses</h4>
-<div class="outline-text-4" id="text-orgea7c88a">
+<div id="outline-container-org9e188bd" class="outline-4">
+<h4 id="org9e188bd">ncurses</h4>
+<div class="outline-text-4" id="text-org9e188bd">
 <p>
 built this wrong the first time, leading to a linker error when making bash.
 </p>
 </div>
 </div>
-<div id="outline-container-orgf6274e0" class="outline-4">
-<h4 id="orgf6274e0">tar</h4>
-<div class="outline-text-4" id="text-orgf6274e0">
+<div id="outline-container-org9febfb5" class="outline-4">
+<h4 id="org9febfb5">tar</h4>
+<div class="outline-text-4" id="text-org9febfb5">
 <p>
 tar being delivered in a tar ball is a special type of comedy.
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-org6b90960" class="outline-3">
-<h3 id="org6b90960">Chroot</h3>
-<div class="outline-text-3" id="text-org6b90960">
+<div id="outline-container-org7c7aa67" class="outline-3">
+<h3 id="org7c7aa67">Chroot</h3>
+<div class="outline-text-3" id="text-org7c7aa67">
 <p>
 A lot of the setup in chroot chapter needs to be thoroughly re-re-read, mostly the associated standards.
 </p>
 </div>
-<div id="outline-container-org6b24246" class="outline-4">
-<h4 id="org6b24246">glibc</h4>
-<div class="outline-text-4" id="text-org6b24246">
+<div id="outline-container-org3f0cb57" class="outline-4">
+<h4 id="org3f0cb57">glibc</h4>
+<div class="outline-text-4" id="text-org3f0cb57">
 <p>
 real <code>0m38.184s</code> tests <code>13m18.205s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-orgae9b642" class="outline-4">
-<h4 id="orgae9b642">gcc</h4>
-<div class="outline-text-4" id="text-orgae9b642">
+<div id="outline-container-orgaa5369e" class="outline-4">
+<h4 id="orgaa5369e">gcc</h4>
+<div class="outline-text-4" id="text-orgaa5369e">
 <p>
 real <code>3m28.512s</code> tests <code>14m58.613s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-org7043da9" class="outline-4">
-<h4 id="org7043da9">gettext</h4>
-<div class="outline-text-4" id="text-org7043da9">
+<div id="outline-container-org7fc4809" class="outline-4">
+<h4 id="org7fc4809">gettext</h4>
+<div class="outline-text-4" id="text-org7fc4809">
 <p>
 it was necessary to clear out the previous source folder for gettext and do a clean <code>tar -xvf gettext-...</code> for it to install properly.
 </p>
 </div>
 </div>
-<div id="outline-container-orgda2291d" class="outline-4">
-<h4 id="orgda2291d">GDBM</h4>
-<div class="outline-text-4" id="text-orgda2291d">
+<div id="outline-container-orge44cd74" class="outline-4">
+<h4 id="orge44cd74">GDBM</h4>
+<div class="outline-text-4" id="text-orge44cd74">
 <p>
 why don't we remove the static library <code>libgdbm_comat.la</code>?
 </p>
 </div>
 </div>
-<div id="outline-container-org15b7fb8" class="outline-4">
-<h4 id="org15b7fb8">expat</h4>
-<div class="outline-text-4" id="text-org15b7fb8">
+<div id="outline-container-orgab2fa82" class="outline-4">
+<h4 id="orgab2fa82">expat</h4>
+<div class="outline-text-4" id="text-orgab2fa82">
 <p>
 for some reason this tarball wasn't in the original list so i had to grab it.
 </p>
 </div>
 </div>
-<div id="outline-container-org9aa7e6e" class="outline-4">
-<h4 id="org9aa7e6e">open-ssl</h4>
-<div class="outline-text-4" id="text-org9aa7e6e">
+<div id="outline-container-orgd5658ec" class="outline-4">
+<h4 id="orgd5658ec">open-ssl</h4>
+<div class="outline-text-4" id="text-orgd5658ec">
 <p>
 an incredibly important package to keep an eye on for updates.
 </p>
 </div>
 </div>
-<div id="outline-container-org04c9455" class="outline-4">
-<h4 id="org04c9455">coreutils</h4>
-<div class="outline-text-4" id="text-org04c9455">
+<div id="outline-container-org5353420" class="outline-4">
+<h4 id="org5353420">coreutils</h4>
+<div class="outline-text-4" id="text-org5353420">
 <p>
 running into issue not finding <code>aclocal</code>. this was caused by somehow skipping <code>automake</code> :^)
 </p>
 </div>
 </div>
-<div id="outline-container-org3846d17" class="outline-4">
-<h4 id="org3846d17">gawk</h4>
-<div class="outline-text-4" id="text-org3846d17">
+<div id="outline-container-org2ba5bfc" class="outline-4">
+<h4 id="org2ba5bfc">gawk</h4>
+<div class="outline-text-4" id="text-org2ba5bfc">
 <p>
 it was around this point that my 20GiB partition for root was no longer satisfactory, so i had to clean up some of the source files. the biggest gain was from taking out the <code>gcc</code> directory. from this point on i clean up the directories after installing.
 </p>
 </div>
 </div>
-<div id="outline-container-orge0b79d9" class="outline-4">
-<h4 id="orge0b79d9">patch</h4>
-<div class="outline-text-4" id="text-orge0b79d9">
+<div id="outline-container-org2115e78" class="outline-4">
+<h4 id="org2115e78">patch</h4>
+<div class="outline-text-4" id="text-org2115e78">
 <p>
 first stumper: have an issue with <code>/lib/getopt-cdefs.h:32:5: error: #if with no expression</code> and i do not know why. a fresh tarball and <code>configure</code> seemed to have fixed the issue, though.
 </p>
 </div>
 </div>
-<div id="outline-container-org8f00530" class="outline-4">
-<h4 id="org8f00530">tar</h4>
-<div class="outline-text-4" id="text-org8f00530">
+<div id="outline-container-org42e07b7" class="outline-4">
+<h4 id="org42e07b7">tar</h4>
+<div class="outline-text-4" id="text-org42e07b7">
 <p>
 testing tar i ran into space issues again. running <code>du -h . | sort -n -r | head - n 20</code> showed me that the linux kernel that was previously unpacked was taking up a lot of space, so i got rid of that along with a few other offenders.
 </p>
 </div>
 </div>
-<div id="outline-container-org8de1b8d" class="outline-4">
-<h4 id="org8de1b8d">vim</h4>
-<div class="outline-text-4" id="text-org8de1b8d">
+<div id="outline-container-org5a29671" class="outline-4">
+<h4 id="org5a29671">vim</h4>
+<div class="outline-text-4" id="text-org5a29671">
 <p>
 i did emacs instead :^)
 </p>
 </div>
 </div>
-<div id="outline-container-org4be0fcc" class="outline-4">
-<h4 id="org4be0fcc">emacs</h4>
-<div class="outline-text-4" id="text-org4be0fcc">
+<div id="outline-container-org39ff726" class="outline-4">
+<h4 id="org39ff726">emacs</h4>
+<div class="outline-text-4" id="text-org39ff726">
 </div>
 <ul class="org-ul">
-<li><a id="org8c7f71f"></a>nettle<br /></li>
-<li><a id="orga7e0ff7"></a>libtasn1<br /></li>
-<li><a id="orgebc7cc8"></a>libunistring<br /></li>
-<li><a id="org678a907"></a>p11-kit<br /></li>
-<li><a id="org9804019"></a>gnutools<br /></li>
+<li><a id="orgaacde14"></a>nettle<br /></li>
+<li><a id="org581aa48"></a>libtasn1<br /></li>
+<li><a id="orgf87a681"></a>libunistring<br /></li>
+<li><a id="orgc9ada23"></a>p11-kit<br /></li>
+<li><a id="org6b7d92a"></a>gnutools<br /></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org88fec87" class="outline-3">
-<h3 id="org88fec87">kernel</h3>
-<div class="outline-text-3" id="text-org88fec87">
+<div id="outline-container-org19639c6" class="outline-3">
+<h3 id="org19639c6">kernel</h3>
+<div class="outline-text-3" id="text-org19639c6">
 <p>
 i won't go into all the settings i did. building the kernel took real <code>1m8.923s</code>
 </p>
 </div>
 </div>
-<div id="outline-container-orgc50ff5e" class="outline-3">
-<h3 id="orgc50ff5e">grub</h3>
-<div class="outline-text-3" id="text-orgc50ff5e">
+<div id="outline-container-org08a8ad1" class="outline-3">
+<h3 id="org08a8ad1">grub</h3>
+<div class="outline-text-3" id="text-org08a8ad1">
 <p>
 rebooted, having some issues. UEFI doesn't see it as bootable (obviously) but my 'host' OS was just a live linux environment. the real host OS is windows, so it just boots straight into that.
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-orgf88601e" class="outline-2">
-<h2 id="orgf88601e"><span class="todo TODO">TODO</span> Recovering from a failed grub</h2>
-<div class="outline-text-2" id="text-orgf88601e">
+<div id="outline-container-orgd884c19" class="outline-2">
+<h2 id="orgd884c19"><span class="todo TODO">TODO</span> Recovering from a failed grub</h2>
+<div class="outline-text-2" id="text-orgd884c19">
 <p>
 first we have to re-mount the drives
 </p>

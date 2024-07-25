@@ -22,16 +22,16 @@
 <p>
 <i>You can find the code for this portion here: <a href="https://codeberg.org/lynn_sh/romi/src/branch/ll/part-2">romi</a></i>
 </p>
-<div id="outline-container-org7d47aed" class="outline-2">
-<h2 id="org7d47aed">Let's make a package manager (2)</h2>
-<div class="outline-text-2" id="text-org7d47aed">
+<div id="outline-container-org0fe877d" class="outline-2">
+<h2 id="org0fe877d">Let's make a package manager (2)</h2>
+<div class="outline-text-2" id="text-org0fe877d">
 <p>
 In the <a href="https://lynn.sh/articles/lets-make-a-package-manager-part-1.html">previous part</a> we defined our single package <code>binutils</code>, and downloaded the source tarball. Now we have to build and install the package so we can actually use it.
 </p>
 </div>
-<div id="outline-container-org5e44c7a" class="outline-3">
-<h3 id="org5e44c7a">How to do it manually</h3>
-<div class="outline-text-3" id="text-org5e44c7a">
+<div id="outline-container-orged3a49b" class="outline-3">
+<h3 id="orged3a49b">How to do it manually</h3>
+<div class="outline-text-3" id="text-orged3a49b">
 <p>
 Before we can understand how to do something programatically. First thing, we have to get the actual source files from the tarball.
 </p>
@@ -74,9 +74,9 @@ As suspected, we need to run <code>./configure</code> and then <code>make</code>
 </ul>
 </div>
 </div>
-<div id="outline-container-orga4a0562" class="outline-3">
-<h3 id="orga4a0562">Defining our package</h3>
-<div class="outline-text-3" id="text-orga4a0562">
+<div id="outline-container-org00202ad" class="outline-3">
+<h3 id="org00202ad">Defining our package</h3>
+<div class="outline-text-3" id="text-org00202ad">
 <p>
 To download, we need to know the packages <code>url</code> and our <code>common name</code> for it. To make, we need to know the packages <code>archive name</code> (the tarball) and the <code>directory name</code> after we extract it. We also need to know the <code>build strategy</code> the package follows. Let's look at this in the form of data:
 </p>
@@ -129,9 +129,9 @@ I won't go over the specifics of each flag (they are covered in great detail in 
 </div>
 </div>
 
-<div id="outline-container-orga005f3f" class="outline-3">
-<h3 id="orga005f3f">Building our package</h3>
-<div class="outline-text-3" id="text-orga005f3f">
+<div id="outline-container-org064133a" class="outline-3">
+<h3 id="org064133a">Building our package</h3>
+<div class="outline-text-3" id="text-org064133a">
 <p>
 The step I'm sure you were waiting for: actually building the darn thing! Let's take our package definition and for now store it in <code>{project root}/pkgs/binutils.sh</code>. This is where we will keep our package definitions until we get our <code>package repository</code> up and running. Let's make sure our package manager <code>romi</code> know's about that:
 </p>
@@ -220,9 +220,9 @@ build
 </div>
 </div>
 </div>
-<div id="outline-container-orga7a71b8" class="outline-3">
-<h3 id="orga7a71b8">Wrapping up</h3>
-<div class="outline-text-3" id="text-orga7a71b8">
+<div id="outline-container-orgc6ec01d" class="outline-3">
+<h3 id="orgc6ec01d">Wrapping up</h3>
+<div class="outline-text-3" id="text-orgc6ec01d">
 <p>
 We wrote this segment in <code>shell script</code> instead of <code>c</code> for a very important reason: the group of people who will maintain the package manager are not the same group of people, necessarily, who will maintain the packages or update their dependencies. We want to make the barrier to entry as simple as possible, and for a lot of packages it won't get more complicated than what we have already done here.
 </p>
