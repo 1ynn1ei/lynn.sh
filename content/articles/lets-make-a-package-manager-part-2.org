@@ -1,0 +1,152 @@
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+INCLUDE: "~/git/lynn.sh/matter/header.org"
+#+TITLE: Let's make a package manager (2)
+#+DESCRIPTION: Let's write a package manager, from scratch, in the c programming language.
+/You can find the code for this portion here: [[https://codeberg.org/lynn_sh/romi/src/branch/ll/part-2][romi]]/
+* Let's make a package manager (2)
+In the [[https://lynn.sh/articles/lets-make-a-package-manager-part-1.html][previous part]] we defined our single package =binutils=, and downloaded the source tarball. Now we have to build and install the package so we can actually use it.
+** How to do it manually
+Before we can understand how to do something programatically. First thing, we have to get the actual source files from the tarball.
+#+begin_src shell-script
+tar xvf binutils-2.42.tar.xz
+#+end_src
+The v flag isn't necessary, but I like to keep things verbose.
+
+After we extract the source files, we need to move into the directory
+#+begin_src shell-script
+cd binutils-2.42
+#+end_src
+
+Since this is a =gnu= project, we can make a few assumptions about how to build this. specifically, we are going to need to run a =configure= to make the =Makefile=, and then run =make && make install=. Let's pretend we don't already know this though, and check the documentation. I recommend =bat= for this, which is an improved cat. It reads the file in a pager similar to when you invoke =man=.
+#+begin_src shell-script
+bat README
+#+end_src
+
+As suspected, we need to run =./configure= and then =make=. You may notice a few directories in the binutils folder. Binutils, as you might have guessed from the name of the package, is actually a collection of utility binaries that help with every other process on a GNU+Linux machine. You can read more about what is included, and what they do, over at the [[https://www.gnu.org/software/binutils/][GNU Website]]. In short, this is a very crucial package of utilities. That's why we picked it as our =one= package!
+
+*A quick summary of our manual steps*:
+- Extract the source files using =tar {downloaded-file-name}=.
+- =cd {directory-name}= into the directory. This step may seem unnecessary, but some build systems may not support it otherwise. Also, importantly, we want our =Makefile= to be in the directory that contains the source files it will be building
+- =./configure {configure-params}=. I didn't mention it before but there are different parameters you can pass to the =configure= script, to generate a =Makefile= for our specific purposes. This is very important when you are crafting a base of libraries and utilities for specific hardware or software restrictions.
+- =make= the actual package, and then =make install=.
+** Defining our package
+To download, we need to know the packages =url= and our =common name= for it. To make, we need to know the packages =archive name= (the tarball) and the =directory name= after we extract it. We also need to know the =build strategy= the package follows. Let's look at this in the form of data:
+#+begin_src shell-script
+package=binutils
+version=2.42
+extension="tar.xz"
+filename="{package}-{version}"
+url="https://ftp.gnu.org/gnu/{package}/{filename}.{extension}"
+strategy="gnu-make"
+#+end_src
+From these, we can infer the rest. Our =archive name= is simply ={package}-{version}.{extension}=. Our =directory name= is the same, but without =extension=. Our definiton of all of these, including =url=, means we can update our supported =version= without having to manually edit the other values.
+
+You may notice, we left out one last thing: =configure-params=. There are a few layers of consideration to be made when setting up your package repository. The first is, which packages do you want to include. This is a rough shape of what is going to be available. The next will be the versions that you support: some distros are bleeding edge, some move at a snails pace to ensure stability.
+
+The finest control is going to be /how/ you build your packages. In the case of =gnu-make= strategies, the =configure-params= are the fine-tuning. This is, if you are following along, going to be where you make your own decisions and spend a lot of time reading documentation on what is possible. For me personally, I started this project after finishing [[https://www.linuxfromscratch.org/lfs/view/stable/][Linux From Scratch]], specifically version =12.1=. I'll be targeting all of my packages, and the configuration of them, based on the recommendations of this book.
+
+If you are following along, I would earnestly recommend you pick a piece of software you admire or use regularly, find all of it's dependencies and their dependencies, and work from the ground up. Find the order you need to build things in, tweak the configurations of the builds, and have a good time. At the end of it, you will have built a package repository that supports a piece of software you can use.
+
+Okay, back to the show. Our configuration options added in makes the package definition look like this:
+#+begin_src shell-script
+package=binutils
+version=2.42
+extension="tar.xz"
+filename="{package}-{version}"
+url="https://ftp.gnu.org/gnu/{package}/{filename}.{extension}"
+strategy="gnu-make"
+config="--prefix=/usr
+--disable-werror
+--enable-kernel=4.1
+--enable-stack-protector=strong
+--disable-nscd
+libc_cv_slibdir=/usr/lib"
+#+end_src
+I won't go over the specifics of each flag (they are covered in great detail in the book linked above.) One flag per line makes it easier to read, and also makes =diffs= or code changes easier to read. It is not uncommon when, updating packages, you need to adjust some build configuration. Having a =diff= of what changed for a package, at a glance, is very useful.
+
+** Building our package
+The step I'm sure you were waiting for: actually building the darn thing! Let's take our package definition and for now store it in ={project root}/pkgs/binutils.sh=. This is where we will keep our package definitions until we get our =package repository= up and running. Let's make sure our package manager =romi= know's about that:
+#+begin_src c
+void
+download (char *query)
+{
+  CURL *curl;
+  FILE *fp;
+  CURLcode response;
+  char dest_buf[128];
+  struct pkg package;
+  if (strcmp (query, "binutils") == 0)
+    {
+      package.name = "binutils";
+      package.url = "https://ftp.gnu.org/gnu/binutils/binutils-2.42.tar.xz";
+      package.version = "2.42";
+      package.fname = "binutils-2.42.tar.xz";
+    }
+  snprintf (dest_buf, sizeof (dest_buf), "%s/%s", "sources", package.fname);
+  fp = fopen (dest_buf, "wb");
+  curl = curl_easy_init ();
+  curl_easy_setopt (curl, CURLOPT_URL, package.url);
+  curl_easy_setopt (curl, CURLOPT_WRITEDATA, fp);
+  if (verbose_flag)
+    curl_easy_setopt (curl, CURLOPT_VERBOSE, 1L);
+  if (!dry_run_flag)
+    response = curl_easy_perform (curl);
+  if (response == CURLE_OK)
+    {
+      /* TODO */
+    }
+  curl_easy_cleanup (curl);
+  fclose (fp);
+}
+#+end_src
+Feel free to just =mv= the =binutils-2.42.tar.xz= file into the =sources= directory, or rebuild and re-run the above code.
+
+Make =build.sh= in the ={project_root}=:
+#+begin_src shell-script
+#!/bin/bash
+source pkgs/$1.sh
+echo "Installing ${package}"
+build_filename=$(echo $filename | sed -e "s|{package}|$package|" -e "s|{version}|$version|")
+tar -xf "sources/${build_filename}.${extension}" -C "sources/"
+cd "sources/${build_filename}/"
+echo $pwd
+./configure ${config}
+make
+#+end_src
+This gets us what we need, but it doesn't allow us to use a different strategy for building the package. Let's make a new directory: ={project_root}/strats/= and add a file to it: =gnu-make.sh=
+#+begin_src shell-script
+#!bin/bash
+
+setup() {
+    ./configure $1
+}
+
+build() {
+    make
+}
+#+end_src
+These functions are generic enough that it can describe various strategies for building. We can expand upon them as we add other build strategies, since as =rust=, =go=, =meson=, =ninja=, &c. For now, it meets our requirements perfectly. This changes our =build.sh= script:
+#+begin_src shell-script
+#!/bin/bash
+source pkgs/$1.sh
+source strats/$strategy.sh
+echo "Installing ${package}"
+build_filename=$(echo $filename | sed -e "s|{package}|$package|" -e "s|{version}|$version|")
+tar -xf "sources/${build_filename}.${extension}" -C "sources/"
+cd "sources/${build_filename}/"
+setup $config
+build
+#+end_src
+** Wrapping up
+We wrote this segment in =shell script= instead of =c= for a very important reason: the group of people who will maintain the package manager are not the same group of people, necessarily, who will maintain the packages or update their dependencies. We want to make the barrier to entry as simple as possible, and for a lot of packages it won't get more complicated than what we have already done here.
+
+Let's clean up the directory and walk through it from the beginning to end
+#+begin_src shell-script
+rm -r sources/*
+make clean && make
+./romi binutils
+./build.sh binutils
+#+end_src
+I have intentionally left off one important step: =make install=. This is because I personally do not want to install this package on my current machine, but rather cross-compile it for another machine. I also don't want you, the reader, to just install something that is not compatible with your other packages! The =make install= step is, in terms of technicality, very trivial so I don't feel like we have left much off. If you wish to add this functionality, you would just need an =install()= function in your strategy file, and run it in the =build.sh= file after building.
+
+Next time we will make our package manager look at our =pkgs= directory instead of a hardcoded singular library, and expand our supported packages.

@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="English" xml:lang="English">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Let's make a package manager (2)</title>
+<meta name="description" content="Let's write a package manager, from scratch, in the c programming language." />
+<meta name="generator" content="Org Mode" />
+<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+<link rel="stylesheet" type="text/css" href="../style.css" />
+</head>
+<body>
+<div id="content" class="content">
+<div id="top-matter">
+<p class="yeseva-one-regular">LYNN</p>
+</div>
+<a rel="me" href="https://tech.lgbt/@lynn_sh">Mastodon</a> | 
+<a rel="me" href="https://codeberg.org/lynn_sh">Codeberg</a>
+<hr>
+<p>
+<i>You can find the code for this portion here: <a href="https://codeberg.org/lynn_sh/romi/src/branch/ll/part-2">romi</a></i>
+</p>
+<div id="outline-container-org7d47aed" class="outline-2">
+<h2 id="org7d47aed">Let's make a package manager (2)</h2>
+<div class="outline-text-2" id="text-org7d47aed">
+<p>
+In the <a href="https://lynn.sh/articles/lets-make-a-package-manager-part-1.html">previous part</a> we defined our single package <code>binutils</code>, and downloaded the source tarball. Now we have to build and install the package so we can actually use it.
+</p>
+</div>
+<div id="outline-container-org5e44c7a" class="outline-3">
+<h3 id="org5e44c7a">How to do it manually</h3>
+<div class="outline-text-3" id="text-org5e44c7a">
+<p>
+Before we can understand how to do something programatically. First thing, we have to get the actual source files from the tarball.
+</p>
+<div class="org-src-container">
+<pre class="src src-shell-script">tar xvf binutils-2.42.tar.xz
+</pre>
+</div>
+<p>
+The v flag isn't necessary, but I like to keep things verbose.
+</p>
+
+<p>
+After we extract the source files, we need to move into the directory
+</p>
+<div class="org-src-container">
+<pre class="src src-shell-script"><span class="org-builtin">cd</span> binutils-2.42
+</pre>
+</div>
+
+<p>
+Since this is a <code>gnu</code> project, we can make a few assumptions about how to build this. specifically, we are going to need to run a <code>configure</code> to make the <code>Makefile</code>, and then run <code>make &amp;&amp; make install</code>. Let's pretend we don't already know this though, and check the documentation. I recommend <code>bat</code> for this, which is an improved cat. It reads the file in a pager similar to when you invoke <code>man</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-shell-script">bat README
+</pre>
+</div>
+
+<p>
+As suspected, we need to run <code>./configure</code> and then <code>make</code>. You may notice a few directories in the binutils folder. Binutils, as you might have guessed from the name of the package, is actually a collection of utility binaries that help with every other process on a GNU+Linux machine. You can read more about what is included, and what they do, over at the <a href="https://www.gnu.org/software/binutils/">GNU Website</a>. In short, this is a very crucial package of utilities. That's why we picked it as our <code>one</code> package!
+</p>
+
+<p>
+<b>A quick summary of our manual steps</b>:
+</p>
+<ul class="org-ul">
+<li>Extract the source files using <code>tar {downloaded-file-name}</code>.</li>
+<li><code>cd {directory-name}</code> into the directory. This step may seem unnecessary, but some build systems may not support it otherwise. Also, importantly, we want our <code>Makefile</code> to be in the directory that contains the source files it will be building</li>
+<li><code>./configure {configure-params}</code>. I didn't mention it before but there are different parameters you can pass to the <code>configure</code> script, to generate a <code>Makefile</code> for our specific purposes. This is very important when you are crafting a base of libraries and utilities for specific hardware or software restrictions.</li>
+<li><code>make</code> the actual package, and then <code>make install</code>.</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orga4a0562" class="outline-3">
+<h3 id="orga4a0562">Defining our package</h3>
+<div class="outline-text-3" id="text-orga4a0562">
+<p>
+To download, we need to know the packages <code>url</code> and our <code>common name</code> for it. To make, we need to know the packages <code>archive name</code> (the tarball) and the <code>directory name</code> after we extract it. We also need to know the <code>build strategy</code> the package follows. Let's look at this in the form of data:
+</p>
+<div class="org-src-container">
+<pre class="src src-shell-script"><span class="org-variable-name">package</span>=binutils
+<span class="org-variable-name">version</span>=2.42
+<span class="org-variable-name">extension</span>=<span class="org-string">"tar.xz"</span>
+<span class="org-variable-name">filename</span>=<span class="org-string">"{package}-{version}"</span>
+<span class="org-variable-name">url</span>=<span class="org-string">"https://ftp.gnu.org/gnu/{package}/{filename}.{extension}"</span>
+<span class="org-variable-name">strategy</span>=<span class="org-string">"gnu-make"</span>
+</pre>
+</div>
+<p>
+From these, we can infer the rest. Our <code>archive name</code> is simply <code>{package}-{version}.{extension}</code>. Our <code>directory name</code> is the same, but without <code>extension</code>. Our definiton of all of these, including <code>url</code>, means we can update our supported <code>version</code> without having to manually edit the other values.
+</p>
+
+<p>
+You may notice, we left out one last thing: <code>configure-params</code>. There are a few layers of consideration to be made when setting up your package repository. The first is, which packages do you want to include. This is a rough shape of what is going to be available. The next will be the versions that you support: some distros are bleeding edge, some move at a snails pace to ensure stability.
+</p>
+
+<p>
+The finest control is going to be <i>how</i> you build your packages. In the case of <code>gnu-make</code> strategies, the <code>configure-params</code> are the fine-tuning. This is, if you are following along, going to be where you make your own decisions and spend a lot of time reading documentation on what is possible. For me personally, I started this project after finishing <a href="https://www.linuxfromscratch.org/lfs/view/stable/">Linux From Scratch</a>, specifically version <code>12.1</code>. I'll be targeting all of my packages, and the configuration of them, based on the recommendations of this book.
+</p>
+
+<p>
+If you are following along, I would earnestly recommend you pick a piece of software you admire or use regularly, find all of it's dependencies and their dependencies, and work from the ground up. Find the order you need to build things in, tweak the configurations of the builds, and have a good time. At the end of it, you will have built a package repository that supports a piece of software you can use.
+</p>
+
+<p>
+Okay, back to the show. Our configuration options added in makes the package definition look like this:
+</p>
+<div class="org-src-container">
+<pre class="src src-shell-script"><span class="org-variable-name">package</span>=binutils
+<span class="org-variable-name">version</span>=2.42
+<span class="org-variable-name">extension</span>=<span class="org-string">"tar.xz"</span>
+<span class="org-variable-name">filename</span>=<span class="org-string">"{package}-{version}"</span>
+<span class="org-variable-name">url</span>=<span class="org-string">"https://ftp.gnu.org/gnu/{package}/{filename}.{extension}"</span>
+<span class="org-variable-name">strategy</span>=<span class="org-string">"gnu-make"</span>
+<span class="org-variable-name">config</span>=<span class="org-string">"--prefix=/usr</span>
+<span class="org-string">--disable-werror</span>
+<span class="org-string">--enable-kernel=4.1</span>
+<span class="org-string">--enable-stack-protector=strong</span>
+<span class="org-string">--disable-nscd</span>
+<span class="org-string">libc_cv_slibdir=/usr/lib"</span>
+</pre>
+</div>
+<p>
+I won't go over the specifics of each flag (they are covered in great detail in the book linked above.) One flag per line makes it easier to read, and also makes <code>diffs</code> or code changes easier to read. It is not uncommon when, updating packages, you need to adjust some build configuration. Having a <code>diff</code> of what changed for a package, at a glance, is very useful.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga005f3f" class="outline-3">
+<h3 id="orga005f3f">Building our package</h3>
+<div class="outline-text-3" id="text-orga005f3f">
+<p>
+The step I'm sure you were waiting for: actually building the darn thing! Let's take our package definition and for now store it in <code>{project root}/pkgs/binutils.sh</code>. This is where we will keep our package definitions until we get our <code>package repository</code> up and running. Let's make sure our package manager <code>romi</code> know's about that:
+</p>
+<div class="org-src-container">
+<pre class="src src-c"><span class="org-type">void</span>
+<span class="org-function-name">download</span> (<span class="org-type">char</span> *<span class="org-variable-name">query</span>)
+{
+  <span class="org-type">CURL</span> *<span class="org-variable-name">curl</span>;
+  <span class="org-type">FILE</span> *<span class="org-variable-name">fp</span>;
+  <span class="org-type">CURLcode</span> <span class="org-variable-name">response</span>;
+  <span class="org-type">char</span> <span class="org-variable-name">dest_buf</span>[128];
+  <span class="org-keyword">struct</span> <span class="org-type">pkg</span> <span class="org-variable-name">package</span>;
+  <span class="org-keyword">if</span> (strcmp (query, <span class="org-string">"binutils"</span>) == 0)
+    {
+      package.name = <span class="org-string">"binutils"</span>;
+      package.url = <span class="org-string">"https://ftp.gnu.org/gnu/binutils/binutils-2.42.tar.xz"</span>;
+      package.version = <span class="org-string">"2.42"</span>;
+      package.fname = <span class="org-string">"binutils-2.42.tar.xz"</span>;
+    }
+  snprintf (dest_buf, <span class="org-keyword">sizeof</span> (dest_buf), <span class="org-string">"%s/%s"</span>, <span class="org-string">"sources"</span>, package.fname);
+  fp = fopen (dest_buf, <span class="org-string">"wb"</span>);
+  curl = curl_easy_init ();
+  curl_easy_setopt (curl, CURLOPT_URL, package.url);
+  curl_easy_setopt (curl, CURLOPT_WRITEDATA, fp);
+  <span class="org-keyword">if</span> (verbose_flag)
+    curl_easy_setopt (curl, CURLOPT_VERBOSE, 1L);
+  <span class="org-keyword">if</span> (<span class="org-negation-char">!</span>dry_run_flag)
+    response = curl_easy_perform (curl);
+  <span class="org-keyword">if</span> (response == CURLE_OK)
+    {
+      <span class="org-comment-delimiter">/* </span><span class="org-comment">TODO</span><span class="org-comment-delimiter"> */</span>
+    }
+  curl_easy_cleanup (curl);
+  fclose (fp);
+}
+</pre>
+</div>
+<p>
+Feel free to just <code>mv</code> the <code>binutils-2.42.tar.xz</code> file into the <code>sources</code> directory, or rebuild and re-run the above code.
+</p>
+
+<p>
+Make <code>build.sh</code> in the <code>{project_root}</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-shell-script"><span class="org-comment-delimiter">#</span><span class="org-comment">!/bin/</span><span class="org-keyword">bash</span>
+source pkgs/$<span class="org-variable-name">1</span>.sh
+<span class="org-builtin">echo</span> <span class="org-string">"Installing ${package}"</span>
+<span class="org-variable-name">build_filename</span>=$(<span class="org-builtin">echo</span> $<span class="org-variable-name">filename</span> | sed -e <span class="org-string">"s|{package}|$package|"</span> -e <span class="org-string">"s|{version}|$version|"</span>)
+tar -xf <span class="org-string">"sources/${build_filename}.${extension}"</span> -C <span class="org-string">"sources/"</span>
+<span class="org-builtin">cd</span> <span class="org-string">"sources/${build_filename}/"</span>
+<span class="org-builtin">echo</span> $<span class="org-variable-name">pwd</span>
+./configure ${<span class="org-variable-name">config</span>}
+make
+</pre>
+</div>
+<p>
+This gets us what we need, but it doesn't allow us to use a different strategy for building the package. Let's make a new directory: <code>{project_root}/strats/</code> and add a file to it: <code>gnu-make.sh</code>
+</p>
+<div class="org-src-container">
+<pre class="src src-shell-script"><span class="org-comment-delimiter">#</span><span class="org-comment">!bin/</span><span class="org-keyword">bash</span>
+
+<span class="org-function-name">setup</span>() {
+    ./configure $<span class="org-variable-name">1</span>
+}
+
+<span class="org-function-name">build</span>() {
+    make
+}
+</pre>
+</div>
+<p>
+These functions are generic enough that it can describe various strategies for building. We can expand upon them as we add other build strategies, since as <code>rust</code>, <code>go</code>, <code>meson</code>, <code>ninja</code>, &amp;c. For now, it meets our requirements perfectly. This changes our <code>build.sh</code> script:
+</p>
+<div class="org-src-container">
+<pre class="src src-shell-script"><span class="org-comment-delimiter">#</span><span class="org-comment">!/bin/</span><span class="org-keyword">bash</span>
+source pkgs/$<span class="org-variable-name">1</span>.sh
+source strats/$<span class="org-variable-name">strategy</span>.sh
+<span class="org-builtin">echo</span> <span class="org-string">"Installing ${package}"</span>
+<span class="org-variable-name">build_filename</span>=$(<span class="org-builtin">echo</span> $<span class="org-variable-name">filename</span> | sed -e <span class="org-string">"s|{package}|$package|"</span> -e <span class="org-string">"s|{version}|$version|"</span>)
+tar -xf <span class="org-string">"sources/${build_filename}.${extension}"</span> -C <span class="org-string">"sources/"</span>
+<span class="org-builtin">cd</span> <span class="org-string">"sources/${build_filename}/"</span>
+setup $<span class="org-variable-name">config</span>
+build
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orga7a71b8" class="outline-3">
+<h3 id="orga7a71b8">Wrapping up</h3>
+<div class="outline-text-3" id="text-orga7a71b8">
+<p>
+We wrote this segment in <code>shell script</code> instead of <code>c</code> for a very important reason: the group of people who will maintain the package manager are not the same group of people, necessarily, who will maintain the packages or update their dependencies. We want to make the barrier to entry as simple as possible, and for a lot of packages it won't get more complicated than what we have already done here.
+</p>
+
+<p>
+Let's clean up the directory and walk through it from the beginning to end
+</p>
+<div class="org-src-container">
+<pre class="src src-shell-script">rm -r sources/*
+make clean &amp;&amp; make
+./romi binutils
+./build.sh binutils
+</pre>
+</div>
+<p>
+I have intentionally left off one important step: <code>make install</code>. This is because I personally do not want to install this package on my current machine, but rather cross-compile it for another machine. I also don't want you, the reader, to just install something that is not compatible with your other packages! The <code>make install</code> step is, in terms of technicality, very trivial so I don't feel like we have left much off. If you wish to add this functionality, you would just need an <code>install()</code> function in your strategy file, and run it in the <code>build.sh</code> file after building.
+</p>
+
+<p>
+Next time we will make our package manager look at our <code>pkgs</code> directory instead of a hardcoded singular library, and expand our supported packages.
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="creator"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 29.4 (<a href="https://orgmode.org">Org</a> mode 9.6.15)</p>
+</div>
+</body>
+</html>

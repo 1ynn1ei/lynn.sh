@@ -1,6 +1,6 @@
 #+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+INCLUDE: "~/git/lynn.sh/matter/header.org"
-#+TITLE: Let's make a package manager
+#+TITLE: Let's make a package manager (1)
 #+DESCRIPTION: Let's write a package manager, from scratch, in the c programming language.
 /You can find the code for this portion here: [[https://codeberg.org/lynn_sh/romi/src/branch/ll/part-1][romi]]/
 * Let's make a package manager (1)
@@ -107,7 +107,7 @@ clean:
 	all
 #+end_src
 
-Finally we are going to define our download function. For now, it will only accept a single package: =binutils=. Specifically, version =2.24=, acquired from the =ftp.gnu.org= server. Let's have a look:
+Finally we are going to define our download function. For now, it will only accept a single package: =binutils=. Specifically, version =2.42=, acquired from the =ftp.gnu.org= server. Let's have a look:
 #+begin_src c
 void
 download (char *query)
@@ -120,8 +120,8 @@ download (char *query)
     {
       package.name = "binutils";
       package.url = "https://ftp.gnu.org/gnu/binutils/binutils-2.42.tar.xz";
-      package.version = "2.24";
-      package.fname = "binutils-2.24.tar.xz";
+      package.version = "2.42";
+      package.fname = "binutils-2.42.tar.xz";
     }
   fp = fopen (package.fname, "wb");
   curl = curl_easy_init ();
@@ -136,6 +136,7 @@ download (char *query)
       // TODO
     }
   curl_easy_cleanup (curl);
+  fclose (fp);
 }
 #+end_src
 
@@ -146,7 +147,7 @@ Let's test it out now. if we run:
 make
 ./romi binutils
 #+end_src
-Nothing will happen for a few seconds, depending on your download speed, and then the program will exit. if we then =ls= we will see that the =binutils-2.24.tar.xz= has been added to the directory we are currently in.
+Nothing will happen for a few seconds, depending on your download speed, and then the program will exit. if we then =ls= we will see that the =binutils-2.42.tar.xz= has been added to the directory we are currently in.
 
 If we add the verbose tag, we pass it along to curl and you can see the actual nitty gritty details of the exchange:
 #+begin_src shell

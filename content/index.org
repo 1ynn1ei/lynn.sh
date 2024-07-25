@@ -3,4 +3,4 @@
 #+DESCRIPTION: Where the lynn is
 #+INCLUDE: "~/git/lynn.sh/matter/header.org"
 * Pages
-- [[./articles/lets-make-a-package-manager-part-1.html][ Let's make a package manager: Part 1]]
+- [[./articles/lets-make-a-package-manager-part-1.html][ 20240724 - Let's make a package manager: Part 1]]
